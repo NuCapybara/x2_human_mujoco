@@ -1,0 +1,196 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Math constants -->
+  <xacro:property name="PI" value="3.1415926535897931"/>
+
+ <!-- Link: Adjustable lengths -->
+  <xacro:property name="s_hip_to_knee"     value="0.37"/> <!-- [m] -->
+  <xacro:property name="s_knee_to_ankle"   value="0.36"/> <!-- [m] -->
+  <xacro:property name="s_hip_width"       value="0.37"/> <!-- [m] This is the distance between the hips. This doesn't equal to the value written on the adjustable link on the real hardware. There is an offset between that value and distance between the hips. I don,t know what the value written on the real link correspond to -->
+
+  <!-- Link: backpack and Joint: fixed_world_to_backpack-->
+  <xacro:property name="x_backpack"   value="0.0"/> <!-- [m] -->
+  <xacro:property name="y_backpack"   value="0.0"/> <!-- [m] -->
+  <xacro:property name="z_backpack"   value="1.05"/> <!-- [m] -->
+  <xacro:property name="roll_backpack" value="${PI/2.0}"/> <!-- [rad] -->
+  <xacro:property name="pitch_backpack" value="0.0"/> <!-- [rad] -->
+  <xacro:property name="yaw_backpack" value="${PI/2.0}"/> <!-- [rad] -->
+  <xacro:property name="s_x_backpack" value="0.002445"/> <!-- [m] -->
+  <xacro:property name="s_y_backpack" value="-0.0006"/> <!-- [m] -->
+  <xacro:property name="s_z_backpack" value="-0.0322"/> <!-- [m] -->
+  <xacro:property name="m_backpack"   value="4.601"/> <!-- [kg] -->
+  <xacro:property name="ixx_backpack" value="0.03978"/> <!-- [kg * m^2] -->
+  <xacro:property name="iyy_backpack" value="0.03754"/> <!-- [kg * m^2] -->
+  <xacro:property name="izz_backpack" value="0.06294"/> <!-- [kg * m^2] -->
+  <xacro:property name="ixy_backpack" value="0.0005696"/> <!-- [kg * m^2] -->
+  <xacro:property name="ixz_backpack" value="-0.0002889"/> <!-- [kg * m^2] -->
+  <xacro:property name="iyz_backpack" value="-0.0004189"/> <!-- [kg * m^2] -->
+
+  <!-- Link: hip_extension -->
+  <xacro:property name="x_hip_extension"   value="${s_hip_width/2.0 + 0.006605}"/> <!-- [m] -->
+  <xacro:property name="y_hip_extension"   value="${-(s_hip_width/2.0 - 0.04)*tan(20*PI/180.0) - 0.15839}"/> <!-- [m] -->
+
+  <!--<xacro:property name="x_hip_extension"   value="0.19445"/>  [m] -->
+  <!--<xacro:property name="y_hip_extension"   value="-0.21221"/>  [m] -->
+  <xacro:property name="z_hip_extension"   value="0.13831"/> <!-- [m] -->
+  <xacro:property name="roll_hip_extension" value="${PI/2.0}"/> <!-- [rad] -->
+  <xacro:property name="pitch_hip_extension" value="0.0"/> <!-- [rad] -->
+  <xacro:property name="yaw_hip_extension" value="${PI}"/> <!-- [rad] -->
+  <xacro:property name="s_x_hip_extension" value="0.00981"/> <!-- [m] -->
+  <xacro:property name="s_y_hip_extension" value="-0.06204"/> <!-- [m] -->
+  <xacro:property name="s_z_hip_extension" value="0.04697"/> <!-- [m] -->
+  <xacro:property name="m_hip_extension"   value="1.731"/> <!-- [kg] -->
+  <xacro:property name="ixx_hip_extension" value="0.02033"/> <!-- [kg * m^2] -->
+  <xacro:property name="iyy_hip_extension" value="0.007419"/> <!-- [kg * m^2] -->
+  <xacro:property name="izz_hip_extension" value="0.01534"/> <!-- [kg * m^2] -->
+  <xacro:property name="ixy_hip_extension" value="-0.002197"/> <!-- [kg * m^2] -->
+  <xacro:property name="ixz_hip_extension" value="0.001336"/> <!-- [kg * m^2] -->
+  <xacro:property name="iyz_hip_extension" value="-0.007508"/> <!-- [kg * m^2] -->
+
+  <!-- Link: upper_thigh + upper_thigh_sensor-->
+  <xacro:property name="x_upper_thigh"   value="0.00933"/> <!-- [m] -->
+  <xacro:property name="y_upper_thigh"   value="0.0"/> <!-- [m] -->
+  <xacro:property name="z_upper_thigh"   value="0.0"/> <!-- [m] -->
+  <xacro:property name="roll_upper_thigh" value="${PI/2.0}"/> <!-- [rad] -->
+  <xacro:property name="pitch_upper_thigh" value="0.0"/> <!-- [rad] -->
+  <xacro:property name="yaw_upper_thigh" value="${PI}"/> <!-- [rad] -->
+  <xacro:property name="s_x_upper_thigh" value="-0.00833"/> <!-- [m] -->
+  <xacro:property name="s_y_upper_thigh" value="-0.0811"/> <!-- [m] -->
+  <xacro:property name="s_z_upper_thigh" value="-0.0105"/> <!-- [m] -->
+  <xacro:property name="m_upper_thigh"   value="0.5594"/> <!-- [kg] -->
+  <xacro:property name="ixx_upper_thigh" value="0.005943"/> <!-- [kg * m^2] -->
+  <xacro:property name="iyy_upper_thigh" value="0.001062"/> <!-- [kg * m^2] -->
+  <xacro:property name="izz_upper_thigh" value="0.005716"/> <!-- [kg * m^2] -->
+  <xacro:property name="ixy_upper_thigh" value="0.0003468"/> <!-- [kg * m^2] -->
+  <xacro:property name="ixz_upper_thigh" value="0.0003781"/> <!-- [kg * m^2] -->
+  <xacro:property name="iyz_upper_thigh" value="0.0005580"/> <!-- [kg * m^2] -->
+  <xacro:property name="x_upper_thigh_sensor"   value="-0.00369"/> <!-- [m] -->
+  <xacro:property name="y_upper_thigh_sensor"   value="-0.085"/> <!-- [m] -->
+  <xacro:property name="z_upper_thigh_sensor"   value="0.0"/> <!-- [m] -->
+  <xacro:property name="roll_upper_thigh_sensor" value="0.0"/> <!-- [rad] -->
+  <xacro:property name="pitch_upper_thigh_sensor" value="0.0"/> <!-- [rad] -->
+  <xacro:property name="yaw_upper_thigh_sensor" value="0.0"/> <!-- [rad] -->
+
+  <!-- Link: lower_thigh -->
+  <xacro:property name="x_lower_thigh"   value="-0.00313"/> <!-- [m] -->
+  <xacro:property name="y_lower_thigh"   value="${-s_hip_to_knee}"/> <!-- [m] -->
+  <xacro:property name="z_lower_thigh"   value="0.0"/> <!-- [m] -->
+  <xacro:property name="roll_lower_thigh" value="0.0"/> <!-- [rad] -->
+  <xacro:property name="pitch_lower_thigh" value="${PI}"/> <!-- [rad] -->
+  <xacro:property name="yaw_lower_thigh" value="0.0"/> <!-- [rad] -->
+  <xacro:property name="s_x_lower_thigh" value="-0.00004"/> <!-- [m] -->
+  <xacro:property name="s_y_lower_thigh" value="0.05564"/> <!-- [m] -->
+  <xacro:property name="s_z_lower_thigh" value="-0.00411"/> <!-- [m] -->
+  <xacro:property name="m_lower_thigh"   value="1.625"/> <!-- [kg] -->
+  <xacro:property name="ixx_lower_thigh" value="0.01096"/> <!-- [kg * m^2] -->
+  <xacro:property name="iyy_lower_thigh" value="0.001439"/> <!-- [kg * m^2] -->
+  <xacro:property name="izz_lower_thigh" value="0.01037"/> <!-- [kg * m^2] -->
+  <xacro:property name="ixy_lower_thigh" value="0.0000538"/> <!-- [kg * m^2] -->
+  <xacro:property name="ixz_lower_thigh" value="-0.0000132"/> <!-- [kg * m^2] -->
+  <xacro:property name="iyz_lower_thigh" value="-0.0003957"/> <!-- [kg * m^2] -->
+
+  <!-- Link: upper_shank + upper_shank_sensor -->
+  <xacro:property name="x_upper_shank"   value="0.01374"/> <!-- [m] -->
+  <xacro:property name="y_upper_shank"   value="0.0"/> <!-- [m] -->
+  <xacro:property name="z_upper_shank"   value="0.0"/> <!-- [m] -->
+  <xacro:property name="roll_upper_shank" value="0.0"/> <!-- [rad] -->
+  <xacro:property name="pitch_upper_shank" value="0.0"/> <!-- [rad] -->
+  <xacro:property name="yaw_upper_shank" value="0.0"/> <!-- [rad] -->
+  <xacro:property name="s_x_upper_shank" value="0.007566"/> <!-- [m] -->
+  <xacro:property name="s_y_upper_shank" value="-0.09080"/> <!-- [m] -->
+  <xacro:property name="s_z_upper_shank" value="-0.00799"/> <!-- [m] -->
+  <xacro:property name="m_upper_shank"   value="0.5008"/> <!-- [kg] -->
+  <xacro:property name="ixx_upper_shank" value="0.006507"/> <!-- [kg * m^2] -->
+  <xacro:property name="iyy_upper_shank" value="0.0007056"/> <!-- [kg * m^2] -->
+  <xacro:property name="izz_upper_shank" value="0.006426"/> <!-- [kg * m^2] -->
+  <xacro:property name="ixy_upper_shank" value="-0.0003135"/> <!-- [kg * m^2] -->
+  <xacro:property name="ixz_upper_shank" value="-0.0002377"/> <!-- [kg * m^2] -->
+  <xacro:property name="iyz_upper_shank" value="0.0004257"/> <!-- [kg * m^2] -->
+  <xacro:property name="x_upper_shank_sensor"   value="0.0019"/> <!-- [m] -->
+  <xacro:property name="y_upper_shank_sensor"   value="-0.1"/> <!-- [m] -->
+  <xacro:property name="z_upper_shank_sensor"   value="0.0"/> <!-- [m] -->
+  <xacro:property name="roll_upper_shank_sensor" value="0.0"/> <!-- [rad] -->
+  <xacro:property name="pitch_upper_shank_sensor" value="0.0"/> <!-- [rad] -->
+  <xacro:property name="yaw_upper_shank_sensor" value="0.0"/> <!-- [rad] -->
+
+
+  <!-- Link: lower_shank -->
+  <xacro:property name="x_lower_shank"   value="-0.006"/> <!-- [m] -->
+  <xacro:property name="y_lower_shank"   value="${-s_knee_to_ankle}"/> <!-- [m] -->
+  <xacro:property name="z_lower_shank"   value="0.0"/> <!-- [m] -->
+  <xacro:property name="roll_lower_shank" value="${-PI/2.0}"/> <!-- [rad] -->
+  <xacro:property name="pitch_lower_shank" value="0.0"/> <!-- [rad] -->
+  <xacro:property name="yaw_lower_shank" value="0.0"/> <!-- [rad] -->
+  <xacro:property name="s_x_lower_shank" value="-0.0009"/> <!-- [m] -->
+  <xacro:property name="s_y_lower_shank" value="0.0"/> <!-- [m] -->
+  <xacro:property name="s_z_lower_shank" value="0.0562"/> <!-- [m] -->
+  <xacro:property name="m_lower_shank"   value="0.2802"/> <!-- [kg] -->
+  <xacro:property name="ixx_lower_shank" value="0.001679"/> <!-- [kg * m^2] -->
+  <xacro:property name="iyy_lower_shank" value="0.001662"/> <!-- [kg * m^2] -->
+  <xacro:property name="izz_lower_shank" value="0.0000745"/> <!-- [kg * m^2] -->
+  <xacro:property name="ixy_lower_shank" value="0.0"/> <!-- [kg * m^2] -->
+  <xacro:property name="ixz_lower_shank" value="0.0"/> <!-- [kg * m^2] -->
+  <xacro:property name="iyz_lower_shank" value="0.0"/> <!-- [kg * m^2] -->
+
+  <!-- Link: foot -->
+  <xacro:property name="x_foot"   value="0.0"/> <!-- [m] -->
+  <xacro:property name="y_foot"   value="0.0"/> <!-- [m] -->
+  <xacro:property name="z_foot"   value="0.0"/> <!-- [m] -->
+  <xacro:property name="roll_foot" value="0.0"/> <!-- [rad] -->
+  <xacro:property name="pitch_foot" value="0.0"/> <!-- [rad] -->
+  <xacro:property name="yaw_foot" value="0.0"/> <!-- [rad] -->
+  <xacro:property name="s_x_foot" value="0.0564"/> <!-- [m] -->
+  <xacro:property name="s_y_foot" value="0.02648"/> <!-- [m] -->
+  <xacro:property name="s_z_foot" value="-0.08834"/> <!-- [m] -->
+  <xacro:property name="m_foot"   value="0.8295"/> <!-- [kg] -->
+  <xacro:property name="ixx_foot" value="0.01149"/> <!-- [kg * m^2] -->
+  <xacro:property name="iyy_foot" value="0.01179"/> <!-- [kg * m^2] -->
+  <xacro:property name="izz_foot" value="0.007927"/> <!-- [kg * m^2] -->
+  <xacro:property name="ixy_foot" value="0.001746"/> <!-- [kg * m^2] -->
+  <xacro:property name="ixz_foot" value="-0.004842"/> <!-- [kg * m^2] -->
+  <xacro:property name="iyz_foot" value="-0.002451"/> <!-- [kg * m^2] -->
+
+  <!-- Link: drive -->
+  <xacro:property name="s_x_drive" value="0.0"/> <!-- [m] -->
+  <xacro:property name="s_y_drive" value="0.0"/> <!-- [m] -->
+  <xacro:property name="s_z_drive" value="0.0"/> <!-- [m] -->
+  <xacro:property name="m_drive"   value="0.1"/> <!-- [kg] -->
+  <xacro:property name="ixx_drive" value="0.0001246"/> <!-- [kg * m^2] -->
+  <xacro:property name="iyy_drive" value="0.0001"/> <!-- [kg * m^2] -->
+  <xacro:property name="izz_drive" value="0.0001"/> <!-- [kg * m^2] -->
+  <xacro:property name="ixy_drive" value="0.0"/> <!-- [kg * m^2] -->
+  <xacro:property name="ixz_drive" value="0.0"/> <!-- [kg * m^2] -->
+  <xacro:property name="iyz_drive" value="0.0"/> <!-- [kg * m^2] -->
+  <xacro:property name="reduction_ratio" value="0.0081632653"/> <!-- [] -->
+  <xacro:property name="v_drive" value="367.5"/> <!-- [rad/s] velocity limit-->
+  <xacro:property name="t_drive" value="0.3265"/> <!-- [Nm] effort limit-->
+
+  <!-- Joint: world_to_backpack_joint -->
+  <xacro:property name="s_backpack_l" value="${-90*PI/180.0}"/> <!-- [rad] lower position limit-->
+  <xacro:property name="s_backpack_u" value="${90*PI/180.0}"/> <!-- [rad] upper position limit-->
+  <xacro:property name="v_backpack" value="3.0"/> <!-- [rad/s] velocity limit-->
+  <xacro:property name="t_backpack" value="40.0"/> <!-- [Nm] effort limit-->
+  <xacro:property name="d_backpack" value="1.0"/> <!-- damping [Nms/rad] NOT CORRECT VALUE-->
+  <xacro:property name="f_backpack" value="2.0"/> <!-- static friction [Nm] NOT CORRECT VALUE -->
+
+
+  <!-- Joint: hip_joint -->
+  <xacro:property name="s_hip_l" value="${-40*PI/180.0}"/> <!-- [rad] lower position limit-->
+  <xacro:property name="s_hip_u" value="${120*PI/180.0}"/> <!-- [rad] upper position limit-->
+  <xacro:property name="v_hip" value="3.0"/> <!-- [rad/s] velocity limit-->
+  <xacro:property name="t_hip" value="80.0"/> <!-- [Nm] effort limit-->
+  <xacro:property name="d_hip" value="2.0"/> <!-- damping [Nms/rad] NOT CORRECT VALUE-->
+  <xacro:property name="f_hip" value="2.0"/> <!-- static friction [Nm] NOT CORRECT VALUE -->
+
+  <!-- Joint: knee_joint -->
+  <xacro:property name="s_knee_l" value="${-120*PI/180.0}"/> <!-- [rad] lower position limit-->
+  <xacro:property name="s_knee_u" value="${0*PI/180.0}"/> <!-- [rad] upper position limit-->
+  <xacro:property name="v_knee" value="${4*PI}"/> <!-- [rad/s] velocity limit-->
+  <xacro:property name="t_knee" value="80.0"/> <!-- [Nm] effort limit-->
+  <xacro:property name="d_knee" value="2.0"/> <!-- damping [Nms/rad] NOT CORRECT VALUE -->
+  <xacro:property name="f_knee" value="2.0"/> <!-- static friction [Nm] NOT CORRECT VALUE -->
+  
+
+</robot>

@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<robot name="slidebot">
+<!-- slidebot is a robot that has 1 linear and 1 rotational degree of freedom -->
+<mujoco>
+  <compiler meshdir="../mesh/darwin/" balanceinertia="true" discardvisual="false"/>
+</mujoco>
+<!-- The base from which the body slides -->
+<link name="base" />
+
+<!-- the body -->
+<link name="body">
+  <visual>
+    <geometry>
+    <box size="0.15 0.5 0.5" />
+    </geometry>
+     <material name="red_mat">
+         <color rgba="1 0 0 0.5" />
+     </material>
+  </visual>
+</link>
+
+<link name="left_thigh">
+  <inertial>
+    <mass value="1.0"/>
+    <inertia ixx="0.03333333333333333" ixy="0.0" ixz="0.0" iyy="0.12333333333333334" iyz="0.0" izz="0.11333333333333331"/>
+  </inertial>
+  <visual>
+  <origin xyz="0.0 -0.25 0.0" rpy="0 1.57079632679 1.57079632679" />
+   <geometry>
+     <cylinder radius="0.07" length="0.5" />
+   </geometry>
+     <material name="blue_mat">
+         <color rgba="0 0 1 1" />
+     </material>
+   </visual>
+</link>
+
+<link name="left_shank">
+  <inertial>
+    <mass value="1.0"/>
+    <inertia ixx="0.03333333333333333" ixy="0.0" ixz="0.0" iyy="0.12333333333333334" iyz="0.0" izz="0.11333333333333331"/>
+  </inertial>
+  <visual>
+  <origin xyz="0.0 -0.225 0.0" rpy="0 1.57079632679 1.57079632679" />
+   <geometry>
+     <cylinder radius="0.07" length="0.45" />
+   </geometry>
+     <material name="green_mat">
+         <color rgba="0 1 0 1" />
+     </material>
+   </visual>
+</link>
+
+<link name="right_thigh">
+  <inertial>
+    <mass value="1.0"/>
+    <inertia ixx="0.03333333333333333" ixy="0.0" ixz="0.0" iyy="0.12333333333333334" iyz="0.0" izz="0.11333333333333331"/>
+  </inertial>
+  <visual>
+  <origin xyz="0.0 -0.25 0.0" rpy="0 1.57079632679 1.57079632679" />
+   <geometry>
+     <cylinder radius="0.07" length="0.5" />
+   </geometry>
+     <material name="blue_mat">
+         <color rgba="0 0 1 1" />
+     </material>
+   </visual>
+</link>
+
+<link name="right_shank">
+  <inertial>
+    <mass value="1.0"/>
+    <inertia ixx="0.03333333333333333" ixy="0.0" ixz="0.0" iyy="0.12333333333333334" iyz="0.0" izz="0.11333333333333331"/>
+  </inertial>
+  <visual>
+  <origin xyz="0.0 -0.225 0.0" rpy="0 1.57079632679 1.57079632679" />
+   <geometry>
+     <cylinder radius="0.07" length="0.45" />
+   </geometry>
+     <material name="green_mat">
+         <color rgba="0 1 0 1" />
+     </material>
+   </visual>
+</link>
+
+<joint name="base_body" type="fixed">
+  <inertial>
+    <mass value="1.0"/>
+    <inertia ixx="0.03333333333333333" ixy="0.0" ixz="0.0" iyy="0.12333333333333334" iyz="0.0" izz="0.11333333333333331"/>
+  </inertial>
+  <origin xyz="0 0 1.5" rpy="0 0 0" />
+  <parent link="base" />
+  <child link="body" />
+</joint>
+
+<joint name="left_hip" type="continuous">
+  <inertial>
+    <mass value="1.0"/>
+    <inertia ixx="0.03333333333333333" ixy="0.0" ixz="0.0" iyy="0.12333333333333334" iyz="0.0" izz="0.11333333333333331"/>
+  </inertial>
+  <axis xyz="0 0 1"/>
+  <origin xyz="0 0.25 -0.25" rpy="1.57079632679 0 0" />
+  <parent link="body" />
+  <child link="left_thigh" />
+</joint>
+
+<joint name="left_knee" type="continuous">
+  <inertial>
+    <mass value="1.0"/>
+    <inertia ixx="0.03333333333333333" ixy="0.0" ixz="0.0" iyy="0.12333333333333334" iyz="0.0" izz="0.11333333333333331"/>
+  </inertial>
+  <axis xyz="0 0 -1"/>
+  <origin xyz="0 -0.5 0" rpy="0 0 0" />
+  <parent link="left_thigh" />
+  <child link="left_shank" />
+</joint>
+
+<joint name="right_hip" type="continuous">
+  <inertial>
+    <mass value="1.0"/>
+    <inertia ixx="0.03333333333333333" ixy="0.0" ixz="0.0" iyy="0.12333333333333334" iyz="0.0" izz="0.11333333333333331"/>
+  </inertial>
+  <axis xyz="0 0 1"/>
+  <origin xyz="0 -0.25 -0.25" rpy="1.57079632679 0 0" />
+  <parent link="body" />
+  <child link="right_thigh" />
+</joint>
+
+<joint name="right_knee" type="continuous">
+  <inertial>
+    <mass value="1.0"/>
+    <inertia ixx="0.03333333333333333" ixy="0.0" ixz="0.0" iyy="0.12333333333333334" iyz="0.0" izz="0.11333333333333331"/>
+  </inertial>
+  <axis xyz="0 0 -1"/>
+  <origin xyz="0 -0.5 0" rpy="0 0 0" />
+  <parent link="right_thigh" />
+  <child link="right_shank" />
+</joint>
+
+
+</robot>
+

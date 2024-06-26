@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<robot name="x2" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<xacro:arg name="robot_description_name" default="x2/robot_description"/>
+
+<xacro:include filename="$(find turtle_brick)/x2_components.urdf.xacro"/>
+<xacro:include filename="$(find turtle_brick)/x2_parameters.urdf.xacro"/>
+
+<xacro:world/>
+<xacro:backpack link_name="backpack" joint_name="world_to_backpack" parent_name="world"/>
+<xacro:left_hip_extension link_name="left_hip_extension" joint_name="fixed_backpack_to_left_hip_ext" parent_name="backpack"/>
+<xacro:left_upper_thigh link_name="left_upper_thigh" joint_name="left_hip_joint" parent_name="left_hip_extension"/>
+<xacro:left_lower_thigh link_name="left_lower_thigh" joint_name="fixed_left_upper_thigh_to_lower_thigh" parent_name="left_upper_thigh"/>
+<xacro:left_upper_shank link_name="left_upper_shank" joint_name="left_knee_joint" parent_name="left_lower_thigh"/>
+<xacro:left_lower_shank link_name="left_lower_shank" joint_name="fixed_left_upper_shank_to_lower_shank" parent_name="left_upper_shank"/>
+<xacro:left_foot link_name="left_foot" joint_name="fixed_left_lower_shank_to_foot" parent_name="left_lower_shank"/>
+
+<xacro:right_hip_extension link_name="right_hip_extension" joint_name="fixed_backpack_to_right_hip_ext" parent_name="backpack"/>
+<xacro:right_upper_thigh link_name="right_upper_thigh" joint_name="right_hip_joint" parent_name="right_hip_extension"/>
+<xacro:right_lower_thigh link_name="right_lower_thigh" joint_name="fixed_right_upper_thigh_to_lower_thigh" parent_name="right_upper_thigh"/>
+<xacro:right_upper_shank link_name="right_upper_shank" joint_name="right_knee_joint" parent_name="right_lower_thigh"/>
+<xacro:right_lower_shank link_name="right_lower_shank" joint_name="fixed_right_upper_shank_to_lower_shank" parent_name="right_upper_shank"/>
+<xacro:right_foot link_name="right_foot" joint_name="fixed_right_lower_shank_to_foot" parent_name="right_lower_shank"/>
+
+<!-- Ros control plugin
+<gazebo>
+  <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+    <robotNamespace>/x2</robotNamespace>
+    <robotParam>$(arg robot_description_name)</robotParam>
+  </plugin>
+</gazebo> -->
+
+
+<!-- Modified Ros control plugin -->
+<gazebo>
+  <plugin name="gazebo_ros_control" filename="libhwi_switch_gazebo_ros_control.so">
+    <robotNamespace>x2</robotNamespace>
+    <robotParam>$(arg robot_description_name)</robotParam>
+  </plugin>
+</gazebo>
+
+
+<!-- Disable fixed point lumping
+<gazebo reference="fixed_backpack_to_left_hip_ext">
+  <disableFixedJointLumping>true</disableFixedJointLumping> 
+  <preserveFixedJoint>true</preserveFixedJoint>
+</gazebo>
+
+<gazebo reference="fixed_left_upper_thigh_to_lower_thigh">
+  <disableFixedJointLumping>true</disableFixedJointLumping> 
+  <preserveFixedJoint>true</preserveFixedJoint>
+</gazebo>
+
+<gazebo reference="fixed_left_upper_shank_to_lower_shank">
+  <disableFixedJointLumping>true</disableFixedJointLumping> 
+  <preserveFixedJoint>true</preserveFixedJoint>
+</gazebo>
+
+<gazebo reference="fixed_left_lower_shank_to_foot">
+  <disableFixedJointLumping>true</disableFixedJointLumping> 
+  <preserveFixedJoint>true</preserveFixedJoint>
+</gazebo>
+
+<gazebo reference="fixed_backpack_to_right_hip_ext">
+  <disableFixedJointLumping>true</disableFixedJointLumping> 
+  <preserveFixedJoint>true</preserveFixedJoint>
+</gazebo>
+
+
+<gazebo reference="fixed_right_upper_thigh_to_lower_thigh">
+  <disableFixedJointLumping>true</disableFixedJointLumping> 
+  <preserveFixedJoint>true</preserveFixedJoint>
+</gazebo>
+
+<gazebo reference="fixed_right_upper_shank_to_lower_shank">
+  <disableFixedJointLumping>true</disableFixedJointLumping> 
+  <preserveFixedJoint>true</preserveFixedJoint>
+</gazebo>
+
+<gazebo reference="fixed_right_lower_shank_to_foot">
+  <disableFixedJointLumping>true</disableFixedJointLumping> 
+  <preserveFixedJoint>true</preserveFixedJoint>
+</gazebo> -->
+
+
+</robot>
