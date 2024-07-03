@@ -8,7 +8,7 @@ from mujoco.glfw import glfw
 import matplotlib.pyplot as plt
 
 # Path to the XML file
-xml_path = "x2.xml"
+xml_path = "test.xml"
 
 # For callback functions
 button_left = False

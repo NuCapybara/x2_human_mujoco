@@ -1,8 +1,8 @@
 <mujoco model="x2">
+  <option gravity = "0 0 -9.81" />
   <compiler angle="radian"/>
   <actuator>
     <motor name="left_hip_joint_motor" joint="left_hip_joint" ctrlrange="-1000 1000" ctrllimited="true"/>
-    <!-- Define more actuators for other joints as needed -->
   </actuator>
   <actuator>
     <motor name="left_knee_joint_motor" joint="left_knee_joint" ctrlrange="-1000 1000" ctrllimited="true"/>
