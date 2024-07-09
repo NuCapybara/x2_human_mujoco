@@ -1,0 +1,123 @@
+<mujoco model="Kamal">
+    <option gravity="0 0 -9.81"/>
+
+    <visual>
+        <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
+        <rgba haze="0.15 0.25 0.35 1"/>
+        <global azimuth="-120" elevation="-20"/>
+    </visual>
+
+    <asset>
+        <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+        <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3"
+        markrgb="0.8 0.8 0.8" width="300" height="300"/>
+        <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.1"/>
+    </asset>
+
+    <worldbody>
+
+        <light pos="0 0 1.5" dir="0 0 -1" directional="true"/>
+        <geom name="floor" size="0 0 0.05" type="plane" material="groundplane"/>
+
+        <body name="base">
+            <geom name="board" type="box" size="1.5 0.005 1.1" pos="0 -0.005 1.1" rgba="1 1 1 1"/>
+            <site name="r1" pos="-0.985 0.03 1.965"/>
+            <site name="r2" pos="-0.985 0.03 0.235"/>
+            <site name="u1" pos="0.95 0.03 2"/>
+            <site name="u2" pos="-0.95 0.03 2"/>
+            <site name="l1" pos="0.985 0.03 1.965"/>
+            <site name="l2" pos="0.985 0.03 0.235"/>
+            
+            <!-- <body pos="0.967 0.02 0.217">
+                <geom name="left_pulley" type="cylinder" size="0.025 0.02" euler="90 0 0"/>
+                <site name="l2" pos="0.03 0.01 -0.03"/>
+            </body> -->
+
+        </body>
+
+        <body name="end_effector" pos="0 0.01 1.1">
+            <joint name="slide_x" type="slide" axis="1 0 0"/>
+            <joint name="slide_z" type="slide" axis="0 0 1"/>
+            <geom type="cylinder" size="0.07 0.01" euler="90 0 0" rgba="0 0.3 0.5 1" mass="1"/>
+
+            <!-- <body name="pulley1" pos="0 0.02 0.05"> -->
+                <geom name="p1" type="cylinder" size="0.01 0.01" pos="0 0.02 0.05" euler="90 0 0" rgba="0.7 0.1 0.1 1" mass="0.5"/>
+                <!-- <body> -->
+                    <site name="side1" pos="0 0.02 0.0"/>
+                <!-- </body> -->
+            <!-- </body> -->
+
+            <!-- <body name="pulley2" pos="0.05 0.02 0"> -->
+                <geom name="p2" type="cylinder" size="0.01 0.01" pos="0.05 0.02 0" euler="90 0 0" rgba="0.7 0.1 0.1 1" mass="0.5"/>
+                <!-- <body> -->
+                    <site name="side2" pos="-0.03 0.02 0"/>
+                <!-- </body> -->
+            <!-- </body> -->
+
+            <!-- <body name="pulley3" pos="-0.05 0.02 0"> -->
+                <geom name="p3" type="cylinder" size="0.01 0.01" pos="-0.05 0.02 0" euler="90 0 0" rgba="0.7 0.1 0.1 1" mass="0.5"/>
+                <!-- <body> -->
+                    <site name="side3" pos="-0.03 0.02 0"/>
+                <!-- </body> -->
+            <!-- </body> -->
+
+            <!-- <body pos="0 0.04 0">
+                <geom type="cylinder" size="0.07 0.01" euler="90 0 0" rgba="0.5 0.5 0.5 1"/>
+            </body> -->
+
+            <!-- <body name="end" pos="0 0.02 -0.04">
+                <geom name="p4" type="cylinder" size="0.01 0.01" euler="90 0 0" rgba="0.2 0.2 0.4 1"/>
+                <site name="end_point" pos="0 0 0"/>
+            </body> -->
+
+        </body>
+
+    </worldbody>
+
+    <tendon>
+        <spatial name="tendon1" width=".002" damping="1" stiffness="100">
+            <site site="u1"/>
+            <geom geom="p1" sidesite="side1"/>
+            <site site="u2"/>
+        </spatial>
+
+        <spatial name="tendon2" width=".002" damping="1" stiffness="100">
+            <site site="l1"/>
+            <geom geom="p2" sidesite="side2"/>
+            <!-- <geom geom="left_pulley" sidesite="l2"/> -->
+            <!-- <site site="end_point"/> -->
+            <site site="l2"/>
+        </spatial>
+
+        <spatial name="tendon3" width=".002" damping="1" stiffness="100">
+            <site site="r1"/>
+            <geom geom="p3" sidesite="side3"/>
+            <site site="r2"/>
+        </spatial>
+    </tendon>
+
+    <equality>
+        <weld body1="end_effector" body2="base" anchor="0.95 0.03
+
+
+2"/>
+        <weld body1="end_effector" body2="base" anchor="0.985 0.03 1.965"/>
+        <weld body1="end_effector" body2="base" anchor="-0.985 0.03 1.965"/>
+    </equality>
+
+    <actuator>
+        <motor name="Upper Motor" tendon="tendon1" ctrlrange="-10000 10000"/>
+        <motor name="Left Motor" tendon="tendon2" ctrlrange="-10000 0"/>
+        <motor name="Right Motor" tendon="tendon3" ctrlrange="-10000 0"/>
+    </actuator>
+
+    <sensor>
+        <tendonpos tendon="tendon1"/>
+        <tendonpos tendon="tendon2"/>
+        <tendonpos tendon="tendon3"/>
+        <force site="u2"/>
+        <force site="l1"/>
+        <force site="r1"/>
+    </sensor>
+
+</mujoco>

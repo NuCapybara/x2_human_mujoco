@@ -6,9 +6,10 @@ import os
 import mediapy as media
 from mujoco.glfw import glfw
 import matplotlib.pyplot as plt
+import csv
 
 # Path to the XML file
-xml_path = "x2.xml"
+xml_path = "simplify_leg_exo.xml"
 
 # For callback functions
 button_left = False
@@ -18,15 +19,13 @@ lastx = 0
 lasty = 0
 
 # Input parameters. The desired starting point and ending point(in angle)
-q0_init = 0  # Initial joint angle of hip joint
-# q0_end = np.pi / 2  # desired end joint angle of hip joint
-q0_end = 0  # desired end joint angle of hip joint
-q1_init = 0  # initial joint angle of knee joint
-q1_end = - np.pi / 2  # desired end joint angle of knee joint
+q0_init = 0 # Initial joint angle of human knee joint
+q0_end = - np.pi /2   # desired end joint angle of human knee joint
+
 
 # Time duration for the motion
 t_init = 0
-t_end = 8
+t_end = 4
 
 t = []
 qact0 = []
@@ -60,14 +59,14 @@ def generate_trajectory(t0, tf, q0, qf):
 
 
 def init_controller(model, data):
-    global a_jnt0, a_jnt1
+    global a_jnt0
 
     a_jnt0 = generate_trajectory(t_init, t_end, q0_init, q0_end)
-    a_jnt1 = generate_trajectory(t_init, t_end, q1_init, q1_end)
+    # a_jnt1 = generate_trajectory(t_init, t_end, q1_init, q1_end)
 
 
 def controller(model, data):
-    global a_jnt0, a_jnt1
+    global a_jnt0
 
     time = data.time
     if time > t_end:
@@ -79,25 +78,31 @@ def controller(model, data):
         a_jnt0[0] + a_jnt0[1] * time + a_jnt0[2] * (time**2) + a_jnt0[3] * (time**3)
     )
     q0dot_ref = a_jnt0[1] + 2 * a_jnt0[2] * time + 3 * a_jnt0[3] * (time**2)
-    q1_ref = (
-        a_jnt1[0] + a_jnt1[1] * time + a_jnt1[2] * (time**2) + a_jnt1[3] * (time**3)
-    )
-    q1dot_ref = a_jnt1[1] + 2 * a_jnt1[2] * time + 3 * a_jnt1[3] * (time**2)
+    # q1_ref = (
+    #     a_jnt1[0] + a_jnt1[1] * time + a_jnt1[2] * (time**2) + a_jnt1[3] * (time**3)
+    # )
+    # q1dot_ref = a_jnt1[1] + 2 * a_jnt1[2] * time + 3 * a_jnt1[3] * (time**2)
 
     # jump into the control!
     # Method1: PD Control
 
-    kp = 100  # User defined, needed to be tuned
-    kd = 3  # User defined, needed to be tuned
+    kp = 150  # User defined, needed to be tuned
+    kd = 3# User defined, needed to be tuned
 
     # calculated torque based on PD control with angle difference error (q_actual - q_ref) and velocity difference error (qdot_actual - qdot_ref
-    data.ctrl[0] = kp * (q0_ref - data.qpos[1]) + kd * (q0dot_ref - data.qvel[1] )
-    data.ctrl[1] = kp * (q1_ref - data.qpos[3]) + kd * (q1dot_ref - data.qvel[3])
+    # Print actuator names and indices
+    # for i in range(model.nu):
+    #     actuator_name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_ACTUATOR, i)
+    #     print(f"Index {i} corresponds to actuator: {actuator_name}")
+    data.ctrl[2] = kp * (q0_ref - data.qpos[9]) + kd * (q0dot_ref - data.qvel[9] )
+    
+    # data.ctrl[1] = kp * (q1_ref - data.qpos[3]) + kd * (q1dot_ref - data.qvel[3])
     t.append(data.time)
-    qact0.append(data.qpos[1])
+    qact0.append(data.qpos[9])
     qref0.append(q0_ref)
-    qact1.append(data.qpos[3])
-    qref1.append(q1_ref)
+    # qact1.append(data.qpos[3])
+    
+    # qref1.append(q1_ref)
 
     # Feedback linearization, model based control
     # M = np.zeros((2,2))
@@ -170,6 +175,9 @@ def scroll(window, xoffset, yoffset):
     action = mujoco.mjtMouse.mjMOUSE_ZOOM
     mujoco.mjv_moveCamera(model, action, 0.0, -0.05 * yoffset, scene, cam)
 
+def get_sensor_sensordata():
+    return mujoco.MjData(model).sensordata
+
 
 # get the full path
 dirname = os.path.dirname(__file__)
@@ -182,13 +190,9 @@ data = mujoco.MjData(model)  # MuJoCo data
 cam = mujoco.MjvCamera()  # Abstract camera
 opt = mujoco.MjvOption()
 
-
-
-# Print the joint names and corresponding index
 for i in range(model.njnt):
     joint_name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_JOINT, i)
     print(f"Index {i} corresponds to joint: {joint_name}")
-    
 # Init GLFW, create window, make OpenGL context current, request v-sync
 glfw.init()
 window = glfw.create_window(1200, 900, "Demo", None, None)
@@ -218,81 +222,98 @@ print_camera_config = 0
 simend = t_end  # simulation time
 
 # Initialize the controller
-data.qpos[1] = q0_init
-data.qpos[3] = q1_init
+data.qpos[9] = q0_init
+# data.qpos[3] = q1_init
 
 init_controller(model, data)
 mujoco.set_mjcb_control(controller)
 
+
+initial_positions = {
+    "human_knee_top": mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, "human_knee_top"),
+    "feet_pad_center": mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, "feet_pad_center")
+}
+
+initial_coords = {
+    "human_knee_top": data.site_xpos[initial_positions["human_knee_top"]],
+    "feet_pad_center": data.site_xpos[initial_positions["feet_pad_center"]]
+}
+
+print("Initial coords: ", initial_coords)
+
 # Simulation parameters
 duration = 5  # (seconds)
 framerate = 60  # (Hz)
+with open("sensor_data.csv", mode="a") as file:
+    writer = csv.writer(file)
+    while not glfw.window_should_close(window):
+        time_prev = data.time
 
-while not glfw.window_should_close(window):
-    time_prev = data.time
+        while data.time - time_prev < 1.0 / 60.0:
+            mujoco.mj_step(model, data)
+            print(data.sensordata)
 
-    while data.time - time_prev < 1.0 / 60.0:
-        mujoco.mj_step(model, data)
+            writer.writerow(data.sensordata)
 
-    if data.time >= simend:
-        plt.figure(1)
-        plt.subplot(2, 1, 1)
-        # plt.plot(t,qact0,'r-')
-        # plt.plot(t,qref0,'k');
-        plt.plot(t, np.subtract(qref0, qact0), "k")
-        plt.plot(t, qref0, "r")
-        plt.plot(t, qact0, "b")
-        plt.legend(["error", "qref_hip", "qact_hip"])
-        plt.ylabel("error position joint 0")
-        plt.subplot(2, 1, 2)
-        # plt.plot(t,qact1,'r-')
-        # plt.plot(t,qref1,'k');
-        plt.plot(t, np.subtract(qref1, qact1), "k")
-        plt.plot(t, qref1, "r")
-        plt.plot(t, qact1, "b")
-        plt.legend(["error", "qref_knee", "qact_knee"])
-        plt.ylabel("error position joint 1")
-        plt.show(block=True)
-        plt.pause(10)
-        # plt.close()
-        break
+        if data.time >= simend:
+            plt.figure(1)
+            plt.subplot(2, 1, 1)
+            # plt.plot(t,qact0,'r-')
+            # plt.plot(t,qref0,'k');
+            plt.plot(t, np.subtract(qref0, qact0), "k")
+            plt.plot(t, qref0, "r")
+            plt.plot(t, qact0, "b")
+            plt.legend(["error", "qref_knee", "qact_knee"])
+            plt.ylabel("error position joint 0")
+            plt.subplot(2, 1, 2)
+            # plt.plot(t,qact1,'r-')
+            # plt.plot(t,qref1,'k');
+            # plt.plot(t, np.subtract(qref1, qact1), "k")
+            # plt.plot(t, qref1, "r")
+            # plt.plot(t, qact1, "b")
+            # plt.legend(["error", "qref_knee", "qact_knee"])
+            # plt.ylabel("error position joint 1")
+            plt.show(block=True)
+            plt.pause(10)
+            # plt.close()
+            break
 
-    # get framebuffer viewport
-    viewport_width, viewport_height = glfw.get_framebuffer_size(window)
-    viewport = mujoco.MjrRect(0, 0, viewport_width, viewport_height)
+        # get framebuffer viewport
+        viewport_width, viewport_height = glfw.get_framebuffer_size(window)
+        viewport = mujoco.MjrRect(0, 0, viewport_width, viewport_height)
 
-    # print camera configuration (help to initialize the view)
-    if print_camera_config == 1:
-        print(
-            "cam.azimuth =",
-            cam.azimuth,
-            ";",
-            "cam.elevation =",
-            cam.elevation,
-            ";",
-            "cam.distance = ",
-            cam.distance,
+        # print camera configuration (help to initialize the view)
+        if print_camera_config == 1:
+            print(
+                "cam.azimuth =",
+                cam.azimuth,
+                ";",
+                "cam.elevation =",
+                cam.elevation,
+                ";",
+                "cam.distance = ",
+                cam.distance,
+            )
+            print(
+                "cam.lookat =np.array([",
+                cam.lookat[0],
+                ",",
+                cam.lookat[1],
+                ",",
+                cam.lookat[2],
+                "])",
+            )
+
+        # Update scene and render
+        mujoco.mjv_updateScene(
+            model, data, opt, None, cam, mujoco.mjtCatBit.mjCAT_ALL.value, scene
         )
-        print(
-            "cam.lookat =np.array([",
-            cam.lookat[0],
-            ",",
-            cam.lookat[1],
-            ",",
-            cam.lookat[2],
-            "])",
-        )
+        mujoco.mjr_render(viewport, scene, context)
 
-    # Update scene and render
-    mujoco.mjv_updateScene(
-        model, data, opt, None, cam, mujoco.mjtCatBit.mjCAT_ALL.value, scene
-    )
-    mujoco.mjr_render(viewport, scene, context)
+        # swap OpenGL buffers (blocking call due to v-sync)
+        glfw.swap_buffers(window)
 
-    # swap OpenGL buffers (blocking call due to v-sync)
-    glfw.swap_buffers(window)
-
-    # process pending GUI events, call GLFW callbacks
-    glfw.poll_events()
+        # process pending GUI events, call GLFW callbacks
+        glfw.poll_events()
 
 glfw.terminate()
