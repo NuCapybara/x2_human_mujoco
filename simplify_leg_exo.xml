@@ -105,7 +105,7 @@
       <site name="human_knee_frontcuff" pos="0.04 0 0.1344" size="0.005" rgba="0 0 0.8 1"/>
       <site name ="ss_cuff_side" pos="0 0.0395 0.1344" size="0.005" rgba="1 0 0 1"/>
       <site name="ss_cuff_front" pos="0.0395 0.0 0.1344" size="0.005" rgba="1 0 0 1"/>
-      <joint name="human_knee_joint" type="hinge" axis="0 -1 0" pos="0 0 0.5" damping="2" frictionloss="2" />
+      <joint name="human_knee_joint" type="hinge" axis="0 -1 0" pos="0 0 0.2344" damping="2" frictionloss="2" />
       <geom name="left_human_shank" type="cylinder" size="0.04 0.2344" rgba="1 0.75 0.8 0.2" contype="1" conaffinity="1" />
       <inertial pos="0 0 0" mass="0.1" diaginertia="0.1 0.1 0.1" />
     </body>
@@ -116,7 +116,7 @@
 
 
   <tendon>
-    <spatial name="knee_connection_side" limited="true" range="0 .05" width="0.003" stiffness="1500" damping="10">
+    <spatial name="knee_connection_side" limited="true" range="0 1" width="0.003" stiffness="1500" damping="10">
       <site site="human_knee_sidecuff"/>
       <geom geom="left_human_shank" sidesite="ss_cuff_side"/>
       <site site="cuff_side"/>
@@ -124,7 +124,7 @@
   </tendon>
 
   <tendon>
-    <spatial name="knee_connection_front" limited="true" range="0 .05" width="0.003" stiffness="1500" damping="10">
+    <spatial name="knee_connection_front" limited="true" range="0 1" width="0.003" stiffness="1500" damping="10">
       <site site="human_knee_frontcuff"/>
       <geom geom="left_human_shank" sidesite="ss_cuff_front"/>
       <site site="cuff_front"/>
@@ -134,7 +134,7 @@
 
 
   <tendon>
-    <spatial name="feet_connection_center" width="0.009" stiffness="100000" damping="10">
+    <spatial name="feet_connection_center" width="0.009" stiffness="200000" damping="10">
       <site site="human_knee_btm_center"/>
       <geom geom="left_human_shank"/>
       <site site="feet_pad_center"/>

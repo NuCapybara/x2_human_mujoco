@@ -32,7 +32,8 @@ qact0 = []
 qref0 = []
 qact1 = []
 qref1 = []
-
+human_knee_torque = []
+knee_joint_passive_force = []
 
 # Generate the trajectory
 # Input: initial time, final time, initial joint angle, final joint angle
@@ -95,7 +96,7 @@ def controller(model, data):
     #     actuator_name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_ACTUATOR, i)
     #     print(f"Index {i} corresponds to actuator: {actuator_name}")
     data.ctrl[2] = kp * (q0_ref - data.qpos[9]) + kd * (q0dot_ref - data.qvel[9] )
-    
+    human_knee_torque.append(data.ctrl[2])
     # data.ctrl[1] = kp * (q1_ref - data.qpos[3]) + kd * (q1dot_ref - data.qvel[3])
     t.append(data.time)
     qact0.append(data.qpos[9])
@@ -251,7 +252,14 @@ with open("sensor_data.csv", mode="a") as file:
 
         while data.time - time_prev < 1.0 / 60.0:
             mujoco.mj_step(model, data)
-            print(data.sensordata)
+            # print(data.sensordata)
+            print("here is the passive force for knee")
+            # print(data.qfrc_passive)
+            knee_joint_passive_force_ = data.qfrc_passive[3]
+            knee_joint_passive_force_drive = data.qfrc_passive[4]
+            knee_joint_passive_force.append(knee_joint_passive_force_)
+            # print("knee_joint_passive_force_", knee_joint_passive_force_)
+            # print("knee_joint_passive_force_drive", knee_joint_passive_force_drive) #its all 0
 
             writer.writerow(data.sensordata)
 
@@ -266,18 +274,16 @@ with open("sensor_data.csv", mode="a") as file:
             plt.legend(["error", "qref_knee", "qact_knee"])
             plt.ylabel("error position joint 0")
             plt.subplot(2, 1, 2)
-            # plt.plot(t,qact1,'r-')
-            # plt.plot(t,qref1,'k');
-            # plt.plot(t, np.subtract(qref1, qact1), "k")
-            # plt.plot(t, qref1, "r")
-            # plt.plot(t, qact1, "b")
-            # plt.legend(["error", "qref_knee", "qact_knee"])
-            # plt.ylabel("error position joint 1")
+            #plot the force between the human knee joint(Active) and the passive force of the exoskeleton knee joint
+            # plt.figure(2)
+            # plt.subplot(2,1,1)
+            # plt.plot(t,knee_joint_passive_force,'g-')
+            # plt.plot(t, human_knee_torque, 'r')
+            # plt.legend(["passive force", "active torque from human knee"])
+            # plt.ylabel("force (N)")
+            
             plt.show(block=True)
-            plt.pause(10)
-            # plt.close()
             break
-
         # get framebuffer viewport
         viewport_width, viewport_height = glfw.get_framebuffer_size(window)
         viewport = mujoco.MjrRect(0, 0, viewport_width, viewport_height)
