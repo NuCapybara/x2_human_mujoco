@@ -1,6 +1,4 @@
 import mujoco
-
-# from mujoco import viewer
 import numpy as np
 import os
 import mediapy as media
@@ -22,7 +20,6 @@ lasty = 0
 q0_init = 0 # Initial joint angle of human knee joint
 q0_end = - np.pi /2   # desired end joint angle of human knee joint
 
-
 # Time duration for the motion
 t_init = 0
 t_end = 4
@@ -30,41 +27,25 @@ t_end = 4
 t = []
 qact0 = []
 qref0 = []
-qact1 = []
-qref1 = []
 human_knee_torque = []
 knee_joint_passive_force = []
 
 # Generate the trajectory
-# Input: initial time, final time, initial joint angle, final joint angle
-# Output: cubirc trajectory [a0 a1 a2 a3]
 def generate_trajectory(t0, tf, q0, qf):
     time_diff3 = (tf - t0) ** 3
-    # define a0
     a0 = qf * (t0**2) * (3 * tf - t0) + q0 * (tf**2) * (tf - 3 * t0)
     a0 = a0 / time_diff3
-
-    # define a1
     a1 = 6 * t0 * tf * (q0 - qf)
     a1 = a1 / time_diff3
-
-    # define a2
     a2 = 3 * (tf + t0) * (qf - q0)
     a2 = a2 / time_diff3
-
-    # define a3
     a3 = 2 * (q0 - qf)
     a3 = a3 / time_diff3
-
     return a0, a1, a2, a3
-
 
 def init_controller(model, data):
     global a_jnt0
-
     a_jnt0 = generate_trajectory(t_init, t_end, q0_init, q0_end)
-    # a_jnt1 = generate_trajectory(t_init, t_end, q1_init, q1_end)
-
 
 def controller(model, data):
     global a_jnt0
@@ -74,39 +55,23 @@ def controller(model, data):
         time = t_end
     if time < t_init:
         time = t_init
-    # calculate the reference(theoratical) angle at time t
+
     q0_ref = (
         a_jnt0[0] + a_jnt0[1] * time + a_jnt0[2] * (time**2) + a_jnt0[3] * (time**3)
     )
     q0dot_ref = a_jnt0[1] + 2 * a_jnt0[2] * time + 3 * a_jnt0[3] * (time**2)
-    # q1_ref = (
-    #     a_jnt1[0] + a_jnt1[1] * time + a_jnt1[2] * (time**2) + a_jnt1[3] * (time**3)
-    # )
-    # q1dot_ref = a_jnt1[1] + 2 * a_jnt1[2] * time + 3 * a_jnt1[3] * (time**2)
 
-    # jump into the control!
-    # Method1: PD Control
+    kp = 150
+    kd = 3
 
-    kp = 150  # User defined, needed to be tuned
-    kd = 3# User defined, needed to be tuned
+    data.ctrl[2] = kp * (q0_ref - data.qpos[9]) + kd * (q0dot_ref - data.qvel[9])
 
-    # calculated torque based on PD control with angle difference error (q_actual - q_ref) and velocity difference error (qdot_actual - qdot_ref
-    # Print actuator names and indices
-    # for i in range(model.nu):
-    #     actuator_name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_ACTUATOR, i)
-    #     print(f"Index {i} corresponds to actuator: {actuator_name}")
-    data.ctrl[2] = kp * (q0_ref - data.qpos[9]) + kd * (q0dot_ref - data.qvel[9] )
-    human_knee_torque.append(data.ctrl[2])
-    # data.ctrl[1] = kp * (q1_ref - data.qpos[3]) + kd * (q1dot_ref - data.qvel[3])
+    # Append to lists
     t.append(data.time)
     qact0.append(data.qpos[9])
     qref0.append(q0_ref)
-    # qact1.append(data.qpos[3])
-    
-    # qref1.append(q1_ref)
-
-    # Feedback linearization, model based control
-    # M = np.zeros((2,2))
+    human_knee_torque.append(data.ctrl[2])
+    knee_joint_passive_force.append(data.qfrc_smooth[3])
 
 
 def keyboard(window, key, scancode, act, mods):
@@ -114,63 +79,36 @@ def keyboard(window, key, scancode, act, mods):
         mujoco.mj_resetData(model, data)
         mujoco.mj_forward(model, data)
 
-
 def mouse_button(window, button, act, mods):
-    # update button state
-    global button_left
-    global button_middle
-    global button_right
-
+    global button_left, button_middle, button_right
     button_left = glfw.get_mouse_button(window, glfw.MOUSE_BUTTON_LEFT) == glfw.PRESS
-    button_middle = (
-        glfw.get_mouse_button(window, glfw.MOUSE_BUTTON_MIDDLE) == glfw.PRESS
-    )
+    button_middle = glfw.get_mouse_button(window, glfw.MOUSE_BUTTON_MIDDLE) == glfw.PRESS
     button_right = glfw.get_mouse_button(window, glfw.MOUSE_BUTTON_RIGHT) == glfw.PRESS
-
-    # update mouse position
     glfw.get_cursor_pos(window)
 
-
 def mouse_move(window, xpos, ypos):
-    # compute mouse displacement, save
-    global lastx
-    global lasty
-    global button_left
-    global button_middle
-    global button_right
+    global lastx, lasty, button_left, button_middle, button_right
 
     dx = xpos - lastx
     dy = ypos - lasty
     lastx = xpos
     lasty = ypos
 
-    # no buttons down: nothing to do
-    if (not button_left) and (not button_middle) and (not button_right):
+    if not button_left and not button_middle and not button_right:
         return
 
-    # get current window size
     width, height = glfw.get_window_size(window)
-
-    # get shift key state
     PRESS_LEFT_SHIFT = glfw.get_key(window, glfw.KEY_LEFT_SHIFT) == glfw.PRESS
     PRESS_RIGHT_SHIFT = glfw.get_key(window, glfw.KEY_RIGHT_SHIFT) == glfw.PRESS
     mod_shift = PRESS_LEFT_SHIFT or PRESS_RIGHT_SHIFT
 
-    # determine action based on mouse button
     if button_right:
-        if mod_shift:
-            action = mujoco.mjtMouse.mjMOUSE_MOVE_H
-        else:
-            action = mujoco.mjtMouse.mjMOUSE_MOVE_V
+        action = mujoco.mjtMouse.mjMOUSE_MOVE_H if mod_shift else mujoco.mjtMouse.mjMOUSE_MOVE_V
     elif button_left:
-        if mod_shift:
-            action = mujoco.mjtMouse.mjMOUSE_ROTATE_H
-        else:
-            action = mujoco.mjtMouse.mjMOUSE_ROTATE_V
+        action = mujoco.mjtMouse.mjMOUSE_ROTATE_H if mod_shift else mujoco.mjtMouse.mjMOUSE_ROTATE_V
     else:
         action = mujoco.mjtMouse.mjMOUSE_ZOOM
     mujoco.mjv_moveCamera(model, action, dx / height, dy / height, scene, cam)
-
 
 def scroll(window, xoffset, yoffset):
     action = mujoco.mjtMouse.mjMOUSE_ZOOM
@@ -178,7 +116,6 @@ def scroll(window, xoffset, yoffset):
 
 def get_sensor_sensordata():
     return mujoco.MjData(model).sensordata
-
 
 # get the full path
 dirname = os.path.dirname(__file__)
@@ -194,6 +131,7 @@ opt = mujoco.MjvOption()
 for i in range(model.njnt):
     joint_name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_JOINT, i)
     print(f"Index {i} corresponds to joint: {joint_name}")
+
 # Init GLFW, create window, make OpenGL context current, request v-sync
 glfw.init()
 window = glfw.create_window(1200, 900, "Demo", None, None)
@@ -212,23 +150,19 @@ glfw.set_cursor_pos_callback(window, mouse_move)
 glfw.set_mouse_button_callback(window, mouse_button)
 glfw.set_scroll_callback(window, scroll)
 
-# Example on how to set camera configuration
+# Set camera configuration
 cam.azimuth = 90
 cam.elevation = 5
 cam.distance = 6
 cam.lookat = np.array([0.0, 0.0, 0.0])
 
-# Generate the video based on PD control!!
-print_camera_config = 0
 simend = t_end  # simulation time
 
 # Initialize the controller
 data.qpos[9] = q0_init
-# data.qpos[3] = q1_init
 
 init_controller(model, data)
 mujoco.set_mjcb_control(controller)
-
 
 initial_positions = {
     "human_knee_top": mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, "human_knee_top"),
@@ -252,74 +186,62 @@ with open("sensor_data.csv", mode="a") as file:
 
         while data.time - time_prev < 1.0 / 60.0:
             mujoco.mj_step(model, data)
-            # print(data.sensordata)
-            print("here is the passive force for knee")
-            # print(data.qfrc_passive)
-            knee_joint_passive_force_ = data.qfrc_passive[3]
-            knee_joint_passive_force_drive = data.qfrc_passive[4]
-            knee_joint_passive_force.append(knee_joint_passive_force_)
-            # print("knee_joint_passive_force_", knee_joint_passive_force_)
-            # print("knee_joint_passive_force_drive", knee_joint_passive_force_drive) #its all 0
+            
+            # knee_joint_passive_force_ = data.qfrc_smooth[3]
+            # # print(knee_joint_passive_force_)
+            # #i found the qfrc_smooth[3] is within [0, 5] as qfrc_passive[3]
 
+            # # knee_joint_passive_force_ = data.qfrc_constraint[3]
+            # # print(data.qfrc_constraint[3])
+            # # print(data.qfrc_smooth[3] - data.qfrc_passive[3])
+            # knee_joint_passive_force.append(knee_joint_passive_force_)
             writer.writerow(data.sensordata)
 
+        # print(knee_joint_passive_force)
         if data.time >= simend:
+            min_length = min(len(t), len(knee_joint_passive_force), len(human_knee_torque))
+            t = t[:min_length]
+            knee_joint_passive_force = knee_joint_passive_force[:min_length]
+            human_knee_torque = human_knee_torque[:min_length]
+
             plt.figure(1)
             plt.subplot(2, 1, 1)
-            # plt.plot(t,qact0,'r-')
-            # plt.plot(t,qref0,'k');
-            plt.plot(t, np.subtract(qref0, qact0), "k")
-            plt.plot(t, qref0, "r")
-            plt.plot(t, qact0, "b")
+            plt.plot(t, np.subtract(qref0[:min_length], qact0[:min_length]), "k")
+            plt.plot(t, qref0[:min_length], "r")
+            plt.plot(t, qact0[:min_length], "b")
             plt.legend(["error", "qref_knee", "qact_knee"])
             plt.ylabel("error position joint 0")
+
             plt.subplot(2, 1, 2)
-            #plot the force between the human knee joint(Active) and the passive force of the exoskeleton knee joint
-            # plt.figure(2)
-            # plt.subplot(2,1,1)
-            # plt.plot(t,knee_joint_passive_force,'g-')
-            # plt.plot(t, human_knee_torque, 'r')
-            # plt.legend(["passive force", "active torque from human knee"])
-            # plt.ylabel("force (N)")
-            
+            plt.plot(t, knee_joint_passive_force, 'g-')
+            plt.plot(t, human_knee_torque, 'r')
+            plt.legend(["passive force", "active torque from human knee"])
+            plt.ylabel("force (N)")
+
             plt.show(block=True)
             break
-        # get framebuffer viewport
         viewport_width, viewport_height = glfw.get_framebuffer_size(window)
         viewport = mujoco.MjrRect(0, 0, viewport_width, viewport_height)
 
-        # print camera configuration (help to initialize the view)
-        if print_camera_config == 1:
-            print(
-                "cam.azimuth =",
-                cam.azimuth,
-                ";",
-                "cam.elevation =",
-                cam.elevation,
-                ";",
-                "cam.distance = ",
-                cam.distance,
-            )
-            print(
-                "cam.lookat =np.array([",
-                cam.lookat[0],
-                ",",
-                cam.lookat[1],
-                ",",
-                cam.lookat[2],
-                "])",
-            )
-
-        # Update scene and render
         mujoco.mjv_updateScene(
             model, data, opt, None, cam, mujoco.mjtCatBit.mjCAT_ALL.value, scene
         )
         mujoco.mjr_render(viewport, scene, context)
 
-        # swap OpenGL buffers (blocking call due to v-sync)
         glfw.swap_buffers(window)
-
-        # process pending GUI events, call GLFW callbacks
         glfw.poll_events()
+# # Specify the file name
+# file_name = "knee_joint_passive_force.csv"
+
+# # Writing to csv file
+# with open(file_name, mode='w', newline='') as file:
+#     writer = csv.writer(file)
+#     # Write the header
+#     writer.writerow(["Knee_Joint_Passive_Force"])
+#     # Write the data
+#     for item in knee_joint_passive_force:
+#         writer.writerow([item])
+
+# print(f"Data has been written to {file_name}")
 
 glfw.terminate()

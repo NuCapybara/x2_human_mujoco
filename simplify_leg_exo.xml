@@ -56,7 +56,7 @@
           <site name="knee_l" pos="0.01 0 0" size="0.005" rgba="0 .7 0 1"/>
           <site name="cuff_side" pos="0.02 -0.1 0" size="0.005" rgba="0 .7 0 1"/>
           <site name="cuff_front" pos="0.07 -0.1 -0.07" size="0.005" rgba="0 .7 0 1"/>
-          <site name="feet_pad_center" pos="0.07 -0.4688 0" size="0.005" rgba=".7 0 0 1"/>
+          <site name="feet_pad_center" pos="0.07 -0.4688 0" type = "box" size="0.02 0.005 0.02" rgba=".7 0 0 1"/>
           <site name="feet_pad1" pos="0.03 -0.4688 0" size="0.005" rgba="0 .7 0 1"/>
           <site name="feet_pad2" pos="0.11 -0.4688 0" size="0.005" rgba="0 .7 0 1"/>
           <site name="feet_pad3" pos="0.07 -0.4688 0.04" size="0.005" rgba="0 0 1 1"/>
@@ -94,20 +94,26 @@
         </body>
       </body>
     </body>
-    <body name="cylinder_body" pos="0.1381 0.09 0.2344" quat = "0.5  0. 0. 0.">
+    <body name="left_human_shank" pos="0.1381 0.09 0.2344" quat = "0.5  0. 0. 0.">
       <site name="human_knee_top" pos="0 0.04 0.2344" size="0.005" rgba="0 0 0.8 1"/>
       <site name="human_knee_btm1" pos="0 0.04 -0.2344" size="0.005" rgba="0 0 0.8 1"/>
       <site name="human_knee_btm2" pos="0 -0.04 -0.2344" size="0.005" rgba="0 0.8 0.8 1"/>
       <site name="human_knee_btm3" pos="-0.04 0 -0.2344" size="0.005" rgba="0.8 0 0 1"/>
       <site name="human_knee_btm4" pos="0.04 0 -0.2344" size="0.005" rgba="0.8 0.5 0 1"/>
-      <site name="human_knee_btm_center" pos="0 0 -0.2344" size="0.005" rgba="0 1 0 1"/>
+      <site name="human_knee_btm_center" pos="0 0 -0.2344" type = "box" size="0.02 0.02 0.001"  rgba="0 1 0 1"/>
       <site name="human_knee_sidecuff" pos="0 0.04 0.1344" size="0.005" rgba="0 0 0.8 1"/>
       <site name="human_knee_frontcuff" pos="0.04 0 0.1344" size="0.005" rgba="0 0 0.8 1"/>
       <site name ="ss_cuff_side" pos="0 0.0395 0.1344" size="0.005" rgba="1 0 0 1"/>
       <site name="ss_cuff_front" pos="0.0395 0.0 0.1344" size="0.005" rgba="1 0 0 1"/>
       <joint name="human_knee_joint" type="hinge" axis="0 -1 0" pos="0 0 0.2344" damping="2" frictionloss="2" />
       <geom name="left_human_shank" type="cylinder" size="0.04 0.2344" rgba="1 0.75 0.8 0.2" contype="1" conaffinity="1" />
-      <inertial pos="0 0 0" mass="0.1" diaginertia="0.1 0.1 0.1" />
+      <inertial pos="0 0 0" mass="0.001" diaginertia="0.1 0.1 0.1" />
+      <!-- <body name="left_human_upper_thigh" pos="0.0 0.0 0.4688" quat="0 0 1 0">
+        <geom name="left_human_upper_thigh" type="cylinder" size="0.04 0.2" rgba="0 0.8 0.8 0.5" contype="1" conaffinity="1" />
+      </body> -->
+      <body name="sensor_site" pos="0 0 -0.2344">
+        <site name="feetsensor" pos="0 0 0" rgba="0 0 1 1" type="box" size="0.02 0.02 0.001"/>
+      </body>
     </body>
   </worldbody>
   <actuator>
@@ -116,7 +122,7 @@
 
 
   <tendon>
-    <spatial name="knee_connection_side" limited="true" range="0 1" width="0.003" stiffness="1500" damping="10">
+    <spatial name="knee_connection_side" limited="true" range="0 0.05" width="0.003" stiffness="1500" damping="10">
       <site site="human_knee_sidecuff"/>
       <geom geom="left_human_shank" sidesite="ss_cuff_side"/>
       <site site="cuff_side"/>
@@ -124,7 +130,7 @@
   </tendon>
 
   <tendon>
-    <spatial name="knee_connection_front" limited="true" range="0 1" width="0.003" stiffness="1500" damping="10">
+    <spatial name="knee_connection_front" limited="true" range="0 0.05" width="0.003" stiffness="1500" damping="10">
       <site site="human_knee_frontcuff"/>
       <geom geom="left_human_shank" sidesite="ss_cuff_front"/>
       <site site="cuff_front"/>
@@ -132,21 +138,26 @@
   </tendon> 
 
 
+  <equality>
+    <weld body1="left_human_shank" body2 = "left_upper_shank" solimp="0.9 0.95 0.001" solref="0.005 1" anchor="0 0 -0.2344"/>
+  </equality>
 
-  <tendon>
+
+  <!-- <tendon>
     <spatial name="feet_connection_center" width="0.009" stiffness="200000" damping="10">
       <site site="human_knee_btm_center"/>
       <geom geom="left_human_shank"/>
       <site site="feet_pad_center"/>
     </spatial>
-  </tendon>
+  </tendon> -->
 
   <sensor>
       <!-- tendon's lenth will be sensed -->
-      <tendonlimitpos tendon="knee_connection_front" />
-      <!-- tendon's velocity will be sensed -->
-      <tendonlimitvel tendon="knee_connection_front" />
-      <tendonlimitfrc tendon="knee_connection_front" />
+      <!-- <tendonlimitpos tendon="knee_connection_front" /> -->
+      <!-- tendon's velocity will be sensed  -->
+      <!-- <tendonlimitvel tendon="knee_connection_front" />
+      <tendonlimitfrc tendon="knee_connection_front" /> -->
+      <force site="feetsensor" />
   </sensor>
 
   <!-- <tendon>

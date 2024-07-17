@@ -7,8 +7,10 @@ import mediapy as media
 from mujoco.glfw import glfw
 import matplotlib.pyplot as plt
 
+print(mujoco.__version__)
 # Path to the XML file
 xml_path = "x2.xml"
+xml_path = "simplify_leg_exo.xml"
 
 # For callback functions
 button_left = False
@@ -20,7 +22,7 @@ lasty = 0
 # Input parameters. The desired starting point and ending point(in angle)
 q0_init = 0  # Initial joint angle of hip joint
 # q0_end = np.pi / 2  # desired end joint angle of hip joint
-q0_end = 0  # desired end joint angle of hip joint
+q0_end = np.pi/2  # desired end joint angle of hip joint
 q1_init = 0  # initial joint angle of knee joint
 q1_end = - np.pi / 2  # desired end joint angle of knee joint
 
