@@ -1,0 +1,604 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<!-- Scale factor for mesh -->
+<xacro:property name="meshes_scale_factor" value="0.001"/>
+
+<!-- Useful definitions -->
+<xacro:property name="meshes_path"
+  value="package://turtle_brick"/>
+<xacro:property name="meshes_scale"
+  value="${meshes_scale_factor}
+  ${meshes_scale_factor}
+  ${meshes_scale_factor}"/>
+
+
+<xacro:macro name="world">
+ 
+<link name="world" >
+</link>
+</xacro:macro>
+
+<!-- Add drive inertia-->
+<xacro:macro name="drive_inertia" params="link_name mimic_joint_name axis_xyz">
+  <!-- Fixed joint to add dummy inertia link -->
+  <joint name="${mimic_joint_name}_drive" type="continuous">
+    <parent link="${link_name}"/>
+    <child  link="${link_name}_drive_inertia"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="${axis_xyz}"/>
+    <limit effort="${t_drive}" velocity="${v_drive}" />
+    <mimic joint="${mimic_joint_name}" multiplier = "${reduction_ratio}"/>
+  </joint>
+
+  <visual>
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+   <geometry>
+   <box size="0.1 0.1 0.1" />
+   </geometry>
+    <material name="red_mat">
+        <color rgba="1 0 0 0.5" />
+    </material>
+ </visual>
+
+  <!-- Dummy inertia link, because KDL cannot have inertia on the base link -->
+  <link name="${link_name}_drive_inertia">
+    <inertial>
+      <origin xyz="${s_x_drive} ${s_y_drive} ${s_z_drive}" rpy="0 0 0"/>
+      <mass   value="${m_drive}"/>
+      <inertia ixx="${ixx_drive}"
+               ixy="${ixy_drive}" iyy="${iyy_drive}"
+               ixz="${ixz_drive}" iyz="${iyz_drive}" izz="${izz_drive}"/>
+    </inertial>
+  </link>
+</xacro:macro>
+
+<!-- backpack + fixed_world_to_backpack-->
+<xacro:macro name="backpack" params="link_name joint_name parent_name">
+
+<link name="${link_name}">
+ <!-- <visual>
+    <origin xyz="0 0.15 0" rpy="0 0 0"/>
+    <geometry>
+    <box size="0.5 0.5 0.15" />
+    </geometry>
+     <material name="red_mat">
+         <color rgba="1 0 0 0.5" />
+     </material>
+  </visual> -->
+
+<visual>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <geometry>
+    <mesh
+      filename="${meshes_path}/back_pack.stl"
+      scale="${meshes_scale}"/>
+  </geometry>
+</visual>
+
+<inertial>
+  <origin xyz="${s_x_backpack} ${s_y_backpack} ${s_z_backpack}" rpy="0 0 0"/>
+  <mass value="${m_backpack}"/>
+  <inertia ixx="${ixx_backpack}"
+           ixy="${ixy_backpack}" iyy="${iyy_backpack}"
+           ixz="${ixz_backpack}" iyz="${iyz_backpack}" izz="${izz_backpack}"/>
+</inertial>
+
+</link>
+
+<joint name="${joint_name}" type="revolute">
+  <parent link="${parent_name}"/>
+  <child link="${link_name}"/>
+  <origin xyz="${x_backpack} ${y_backpack} ${z_backpack}" rpy="${roll_backpack} ${pitch_backpack} ${yaw_backpack}"/>
+  <axis xyz="-1 0 0"/>
+  <limit effort="${t_backpack}" velocity="${v_backpack}" lower="${s_backpack_l}" upper="${s_backpack_u}" />
+  <dynamics damping="${d_backpack}" friction="${f_backpack}"/>
+</joint>
+
+<!-- Transmission tags for ros control -->
+<transmission name="{joint_name}_transmission">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="${joint_name}">
+    <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="${joint_name}_actuator">
+    <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>
+
+
+</xacro:macro>
+
+<!-- left_hip_extension + fixed_backpack_to_left_hip_ext-->
+<xacro:macro name="left_hip_extension" params="link_name joint_name parent_name">
+
+<link name="${link_name}">
+<visual>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <geometry>
+    <mesh
+      filename="${meshes_path}/hip_sa.stl"
+      scale="${meshes_scale}"/>
+  </geometry>
+</visual>
+
+<inertial>
+  <origin xyz="${s_x_hip_extension} ${s_y_hip_extension} ${s_z_hip_extension}" rpy="0 0 0"/>
+  <mass value="${m_hip_extension}"/>
+  <inertia ixx="${ixx_hip_extension}"
+           ixy="${ixy_hip_extension}" iyy="${iyy_hip_extension}"
+           ixz="${ixz_hip_extension}" iyz="${iyz_hip_extension}" izz="${izz_hip_extension}"/>
+</inertial>
+
+</link>
+
+<joint name="${joint_name}" type="fixed">
+  <parent link="${parent_name}"/>
+  <child link="${link_name}"/>
+  <origin xyz="${x_hip_extension} ${y_hip_extension} ${z_hip_extension}" rpy="${roll_hip_extension} ${pitch_hip_extension} ${yaw_hip_extension}"/>
+</joint> 
+
+</xacro:macro>
+
+<!-- left_upper_thigh + left_hip_joint + left_hip_sensor-->
+<xacro:macro name="left_upper_thigh" params="link_name joint_name parent_name">
+
+<link name="${link_name}">
+<visual>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <geometry>
+    <mesh
+      filename="${meshes_path}/thigh-l_s.stl"
+      scale="${meshes_scale}"/>
+  </geometry>
+</visual>
+
+<inertial>
+  <origin xyz="${s_x_upper_thigh} ${s_y_upper_thigh} ${s_z_upper_thigh}" rpy="0 0 0"/>
+  <mass value="${m_upper_thigh}"/>
+  <inertia ixx="${ixx_upper_thigh}"
+           ixy="${ixy_upper_thigh}" iyy="${iyy_upper_thigh}"
+           ixz="${ixz_upper_thigh}" iyz="${iyz_upper_thigh}" izz="${izz_upper_thigh}"/>
+</inertial>
+
+</link>
+
+<joint name="${joint_name}" type="revolute">
+  <parent link="${parent_name}"/>
+  <child link="${link_name}"/>
+<origin xyz="${x_upper_thigh} ${y_upper_thigh} ${z_upper_thigh}" rpy="${roll_upper_thigh} ${pitch_upper_thigh} ${yaw_upper_thigh}"/>
+  <axis xyz="-1 0 0"/>
+  <limit effort="${t_hip}" velocity="${v_hip}" lower="${s_hip_l}" upper="${s_hip_u}" />
+  <dynamics damping="${d_hip}" friction="${f_hip}"/>
+</joint>
+
+<xacro:drive_inertia link_name="${link_name}" mimic_joint_name="${joint_name}" axis_xyz="1 0 0"/>
+
+
+<!-- Transmission tags for ros control -->
+<transmission name="{joint_name}_transmission">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="${joint_name}">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="${joint_name}_actuator">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>
+
+<link name="${link_name}_sensor"/>
+
+<joint name="${link_name}_to_${link_name}_sensor" type="fixed">
+  <parent link="${link_name}"/>
+  <child link="${link_name}_sensor"/>
+  <origin xyz="${x_upper_thigh_sensor} ${y_upper_thigh_sensor} ${z_upper_thigh_sensor}" rpy="${roll_upper_thigh_sensor} ${pitch_upper_thigh_sensor} ${yaw_upper_thigh_sensor}"/>
+</joint> 
+
+
+</xacro:macro>
+
+<!-- left_lower_thigh + fixed_left_upper_thigh_to_lower_thigh-->
+<xacro:macro name="left_lower_thigh" params="link_name joint_name parent_name">
+
+<link name="${link_name}">
+<visual>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <geometry>
+    <mesh
+      filename="${meshes_path}/knee-l.stl"
+      scale="${meshes_scale}"/>
+  </geometry>
+</visual>
+
+<inertial>
+  <origin xyz="${s_x_lower_thigh} ${s_y_lower_thigh} ${s_z_lower_thigh}" rpy="0 0 0"/>
+  <mass value="${m_lower_thigh}"/>
+  <inertia ixx="${ixx_lower_thigh}"
+           ixy="${ixy_lower_thigh}" iyy="${iyy_lower_thigh}"
+           ixz="${ixz_lower_thigh}" iyz="${iyz_lower_thigh}" izz="${izz_lower_thigh}"/>
+</inertial>
+
+</link>
+
+<joint name="${joint_name}" type="fixed">
+  <parent link="${parent_name}"/>
+  <child link="${link_name}"/>
+  <origin xyz="${x_lower_thigh} ${y_lower_thigh} ${z_lower_thigh}" rpy="${roll_lower_thigh} ${pitch_lower_thigh} ${yaw_lower_thigh}"/>
+</joint> 
+
+</xacro:macro>
+
+<!-- left_upper_shank + left_knee_joint + left_upper_shank_sensor-->
+<xacro:macro name="left_upper_shank" params="link_name joint_name parent_name">
+
+<link name="${link_name}">
+<visual>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <geometry>
+    <mesh
+      filename="${meshes_path}/shank-l.stl"
+      scale="${meshes_scale}"/>
+  </geometry>
+</visual>
+
+<inertial>
+  <origin xyz="${s_x_upper_shank} ${s_y_upper_shank} ${s_z_upper_shank}" rpy="0 0 0"/>
+  <mass value="${m_upper_shank}"/>
+  <inertia ixx="${ixx_upper_shank}"
+           ixy="${ixy_upper_shank}" iyy="${iyy_upper_shank}"
+           ixz="${ixz_upper_shank}" iyz="${iyz_upper_shank}" izz="${izz_upper_shank}"/>
+</inertial>
+
+</link>
+
+<joint name="${joint_name}" type="revolute">
+  <parent link="${parent_name}"/>
+  <child link="${link_name}"/>
+<origin xyz="${x_upper_shank} ${y_upper_shank} ${z_upper_shank}" rpy="${roll_upper_shank} ${pitch_upper_shank} ${yaw_upper_shank}"/>
+  <axis xyz="1 0 0"/>
+  <limit effort="${t_knee}" velocity="${v_knee}" lower="${s_knee_l}" upper="${s_knee_u}" />
+  <dynamics damping="${d_knee}" friction="${f_knee}"/>
+</joint>
+
+<xacro:drive_inertia link_name="${link_name}" mimic_joint_name="${joint_name}" axis_xyz="1 0 0"/>
+
+<!-- Transmission tags for ros control -->
+<transmission name="{joint_name}_transmission">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="${joint_name}">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="${joint_name}_actuator">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>
+
+<link name="${link_name}_sensor"/>
+
+<joint name="${link_name}_to_${link_name}_sensor" type="fixed">
+  <parent link="${link_name}"/>
+  <child link="${link_name}_sensor"/>
+  <origin xyz="${x_upper_shank_sensor} ${y_upper_shank_sensor} ${z_upper_shank_sensor}" rpy="${roll_upper_shank_sensor} ${pitch_upper_shank_sensor} ${yaw_upper_shank_sensor}"/>
+</joint> 
+
+</xacro:macro>
+
+<!-- left_lower_shank + fixed_left_upper_shank_to_lower_shank-->
+<xacro:macro name="left_lower_shank" params="link_name joint_name parent_name">
+
+<link name="${link_name}">
+<visual>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <geometry>
+    <mesh
+      filename="${meshes_path}/ankle.stl"
+      scale="${meshes_scale}"/>
+  </geometry>
+</visual>
+
+<inertial>
+  <origin xyz="${s_x_lower_shank} ${s_y_lower_shank} ${s_z_lower_shank}" rpy="0 0 0"/>
+  <mass value="${m_lower_shank}"/>
+  <inertia ixx="${ixx_lower_shank}"
+           ixy="${ixy_lower_shank}" iyy="${iyy_lower_shank}"
+           ixz="${ixz_lower_shank}" iyz="${iyz_lower_shank}" izz="${izz_lower_shank}"/>
+</inertial>
+
+</link>
+
+<joint name="${joint_name}" type="fixed">
+  <parent link="${parent_name}"/>
+  <child link="${link_name}"/>
+  <origin xyz="${x_lower_shank} ${y_lower_shank} ${z_lower_shank}" rpy="${roll_lower_shank} ${pitch_lower_shank} ${pitch_lower_shank}"/>
+</joint> 
+
+</xacro:macro>
+
+<!-- left_foot + fixed_left_lower_shank_to_foot-->
+<xacro:macro name="left_foot" params="link_name joint_name parent_name">
+
+<link name="${link_name}">
+<visual>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <geometry>
+    <mesh
+      filename="${meshes_path}/foot-l.stl"
+      scale="${meshes_scale}"/>
+  </geometry>
+</visual>
+
+<inertial>
+  <origin xyz="${s_x_foot} ${s_y_foot} ${s_z_foot}" rpy="0 0 0"/>
+  <mass value="${m_foot}"/>
+  <inertia ixx="${ixx_foot}"
+           ixy="${ixy_foot}" iyy="${iyy_foot}"
+           ixz="${ixz_foot}" iyz="${iyz_foot}" izz="${izz_foot}"/>
+</inertial>
+
+</link>
+
+<joint name="${joint_name}" type="fixed">
+  <parent link="${parent_name}"/>
+  <child link="${link_name}"/>
+  <origin xyz="${x_foot} ${y_foot} ${z_foot}" rpy="${roll_foot} ${pitch_foot} ${yaw_foot}"/>
+</joint> 
+
+</xacro:macro>
+
+<!-- right_hip_extension + fixed_backpack_to_right_hip_ext -->
+<xacro:macro name="right_hip_extension" params="link_name joint_name parent_name">
+
+<link name="${link_name}">
+<visual>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <geometry>
+    <mesh
+      filename="${meshes_path}/hip-r.stl"
+      scale="${meshes_scale}"/>
+  </geometry>
+</visual> 
+
+<inertial>
+  <origin xyz="${s_x_hip_extension} ${-s_y_hip_extension} ${s_z_hip_extension}" rpy="0 0 0"/>
+  <mass value="${m_hip_extension}"/>
+  <inertia ixx="${ixx_hip_extension}"
+           ixy="${-ixy_hip_extension}" iyy="${iyy_hip_extension}"
+           ixz="${ixz_hip_extension}" iyz="${-iyz_hip_extension}" izz="${izz_hip_extension}"/>
+</inertial>
+
+</link>
+
+<joint name="${joint_name}" type="fixed">
+  <parent link="${parent_name}"/>
+  <child link="${link_name}"/>
+  <origin xyz="${-x_hip_extension} ${y_hip_extension} ${z_hip_extension}" rpy="${roll_hip_extension + PI} ${pitch_hip_extension} ${yaw_hip_extension + PI}"/>
+</joint> 
+
+</xacro:macro>
+
+
+<!-- right_upper_thigh + right_hip_joint + right_upper_thigh_sensor-->
+<xacro:macro name="right_upper_thigh" params="link_name joint_name parent_name">
+
+<link name="${link_name}">
+<visual>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <geometry>
+    <mesh
+      filename="${meshes_path}/thigh-r.stl"
+      scale="${meshes_scale}"/>
+  </geometry>
+</visual>
+
+<inertial>
+  <origin xyz="${s_x_upper_thigh} ${s_y_upper_thigh} ${-s_z_upper_thigh}" rpy="0 0 0"/>
+  <mass value="${m_upper_thigh}"/>
+  <inertia ixx="${ixx_upper_thigh}"
+           ixy="${ixy_upper_thigh}" iyy="${iyy_upper_thigh}"
+           ixz="${-ixz_upper_thigh}" iyz="${-iyz_upper_thigh}" izz="${izz_upper_thigh}"/>
+</inertial>
+
+</link>
+
+<joint name="${joint_name}" type="revolute">
+  <parent link="${parent_name}"/>
+  <child link="${link_name}"/>
+<origin xyz="${x_upper_thigh} ${y_upper_thigh} ${z_upper_thigh}" rpy="${roll_upper_thigh} ${pitch_upper_thigh} ${yaw_upper_thigh}"/>
+  <axis xyz="1 0 0"/>
+  <limit effort="${t_hip}" velocity="${v_hip}" lower="${s_hip_l}" upper="${s_hip_u}" />
+  <dynamics damping="${d_hip}" friction="${f_hip}"/>
+</joint>
+
+<xacro:drive_inertia link_name="${link_name}" mimic_joint_name="${joint_name}" axis_xyz="-1 0 0"/>
+
+<!-- Transmission tags for ros control -->
+<transmission name="{joint_name}_transmission">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="${joint_name}">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="${joint_name}_actuator">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>
+
+<link name="${link_name}_sensor"/>
+
+<joint name="${link_name}_to_${link_name}_sensor" type="fixed">
+  <parent link="${link_name}"/>
+  <child link="${link_name}_sensor"/>
+  <origin xyz="${x_upper_thigh_sensor} ${y_upper_thigh_sensor} ${z_upper_thigh_sensor}" rpy="${roll_upper_thigh_sensor + PI} ${pitch_upper_thigh_sensor} ${yaw_upper_thigh_sensor}"/>
+</joint> 
+
+</xacro:macro>
+
+<!-- right_lower_thigh + fixed_right_upper_thigh_to_lower_thigh-->
+<xacro:macro name="right_lower_thigh" params="link_name joint_name parent_name">
+
+<link name="${link_name}">
+<visual>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <geometry>
+    <mesh
+      filename="${meshes_path}/knee-r.stl"
+      scale="${meshes_scale}"/>
+  </geometry>
+</visual>
+
+<inertial>
+  <origin xyz="${s_x_lower_thigh} ${s_y_lower_thigh} ${-s_z_lower_thigh}" rpy="0 0 0"/>
+  <mass value="${m_lower_thigh}"/>
+  <inertia ixx="${ixx_lower_thigh}"
+           ixy="${ixy_lower_thigh}" iyy="${iyy_lower_thigh}"
+           ixz="${-ixz_lower_thigh}" iyz="${-iyz_lower_thigh}" izz="${izz_lower_thigh}"/>
+</inertial>
+
+</link>
+
+<joint name="${joint_name}" type="fixed">
+  <parent link="${parent_name}"/>
+  <child link="${link_name}"/>
+  <origin xyz="${x_lower_thigh} ${y_lower_thigh} ${z_lower_thigh}" rpy="${roll_lower_thigh} ${pitch_lower_thigh} ${yaw_lower_thigh}"/>
+</joint> 
+
+</xacro:macro>
+
+<!-- right_upper_shank + right_knee_joint + right_upper_shank_joint-->
+<xacro:macro name="right_upper_shank" params="link_name joint_name parent_name">
+
+<link name="${link_name}">
+<visual>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <geometry>
+    <mesh
+      filename="${meshes_path}/shank-r.stl"
+      scale="${meshes_scale}"/>
+  </geometry>
+</visual>
+
+<inertial>
+  <origin xyz="${s_x_upper_shank} ${s_y_upper_shank} ${-s_z_upper_shank}" rpy="0 0 0"/>
+  <mass value="${m_upper_shank}"/>
+  <inertia ixx="${ixx_upper_shank}"
+           ixy="${ixy_upper_shank}" iyy="${iyy_upper_shank}"
+           ixz="${-ixz_upper_shank}" iyz="${-iyz_upper_shank}" izz="${izz_upper_shank}"/>
+</inertial>
+
+</link>
+
+<joint name="${joint_name}" type="revolute">
+  <parent link="${parent_name}"/>
+  <child link="${link_name}"/>
+<origin xyz="${x_upper_shank} ${y_upper_shank} ${z_upper_shank}" rpy="${roll_upper_shank} ${pitch_upper_shank} ${yaw_upper_shank}"/>
+  <axis xyz="-1 0 0"/>
+  <limit effort="${t_knee}" velocity="${v_knee}" lower="${s_knee_l}" upper="${s_knee_u}" />
+  <dynamics damping="${d_knee}" friction="${f_knee}"/>
+</joint>
+
+<xacro:drive_inertia link_name="${link_name}" mimic_joint_name="${joint_name}" axis_xyz="-1 0 0"/>
+
+<!-- Transmission tags for ros control -->
+<transmission name="{joint_name}_transmission">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="${joint_name}">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="${joint_name}_actuator">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>
+
+<link name="${link_name}_sensor"/>
+
+<joint name="${link_name}_to_${link_name}_sensor" type="fixed">
+  <parent link="${link_name}"/>
+  <child link="${link_name}_sensor"/>
+  <origin xyz="${x_upper_shank_sensor} ${y_upper_shank_sensor} ${z_upper_shank_sensor}" rpy="${roll_upper_shank_sensor + PI} ${pitch_upper_shank_sensor} ${yaw_upper_shank_sensor}"/>
+</joint> 
+
+</xacro:macro>
+
+<!-- right_lower_shank + fixed_right_upper_shank_to_lower_shank-->
+<xacro:macro name="right_lower_shank" params="link_name joint_name parent_name">
+
+<link name="${link_name}">
+<visual>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <geometry>
+    <mesh
+      filename="${meshes_path}/ankle.stl"
+      scale="${meshes_scale}"/>
+  </geometry>
+</visual>
+
+<inertial>
+  <origin xyz="${s_x_lower_shank} ${-s_y_lower_shank} ${s_z_lower_shank}" rpy="0 0 0"/>
+  <mass value="${m_lower_shank}"/>
+  <inertia ixx="${ixx_lower_shank}"
+           ixy="${-ixy_lower_shank}" iyy="${iyy_lower_shank}"
+           ixz="${ixz_lower_shank}" iyz="${-iyz_lower_shank}" izz="${izz_lower_shank}"/>
+</inertial>
+</link>
+
+<joint name="${joint_name}" type="fixed">
+  <parent link="${parent_name}"/>
+  <child link="${link_name}"/>
+  <origin xyz="${x_lower_shank} ${y_lower_shank} ${z_lower_shank}" rpy="${roll_lower_shank} ${pitch_lower_shank} ${pitch_lower_shank}"/>
+</joint> 
+
+</xacro:macro>
+
+<!-- right_foot + fixed_right_lower_shank_to_foot-->
+<xacro:macro name="right_foot" params="link_name joint_name parent_name">
+
+<link name="${link_name}">
+<visual>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <geometry>
+    <mesh
+      filename="${meshes_path}/foot-r.stl"
+      scale="${meshes_scale}"/>
+  </geometry>
+</visual>
+
+<inertial>
+  <origin xyz="${s_x_foot} ${-s_y_foot} ${s_z_foot}" rpy="0 0 0"/>
+  <mass value="${m_foot}"/>
+  <inertia ixx="${ixx_foot}"
+           ixy="${-ixy_foot}" iyy="${iyy_foot}"
+           ixz="${ixz_foot}" iyz="${-iyz_foot}" izz="${izz_foot}"/>
+</inertial>
+</link>
+
+<joint name="${joint_name}" type="fixed">
+  <parent link="${parent_name}"/>
+  <child link="${link_name}"/>
+  <origin xyz="${x_foot} ${y_foot} ${z_foot}" rpy="${roll_foot} ${pitch_foot} ${yaw_foot}"/>
+</joint> 
+
+</xacro:macro>
+
+
+</robot>

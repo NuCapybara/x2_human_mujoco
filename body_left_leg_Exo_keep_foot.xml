@@ -1,0 +1,300 @@
+<mujoco model="x2">
+  <option gravity="0 0 -9.81" />
+  <option integrator="RK4">
+    <flag energy="enable"/>
+  </option>
+  <compiler angle="radian" />
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.1 0.1 0.1" specular="0.9 0.9 0.9"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <global azimuth="140" elevation="-20"/>
+  </visual>
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+    <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3"
+      markrgb="0.8 0.8 0.8" width="300" height="300"/>
+    <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2"/>
+  </asset>
+  <actuator>
+    <motor name="left_hip_joint_motor" joint="left_hip_joint" ctrlrange="-1000 1000" ctrllimited="true" />
+    <motor name="left_knee_joint_motor" joint="left_knee_joint" ctrlrange="-1000 1000" ctrllimited="true" />
+    <!-- Define more actuators for other joints as needed -->
+  </actuator>
+  <asset>
+    <mesh name="back_pack" file="back_pack.stl" scale="0.001 0.001 0.001" />
+    <mesh name="hip_sa" file="hip_sa.stl" scale="0.001 0.001 0.001" />
+    <mesh name="thigh-l_s" file="thigh-l_s.stl" scale="0.001 0.001 0.001" />
+    <mesh name="knee-l" file="knee-l.stl" scale="0.001 0.001 0.001" />
+    <mesh name="shank-l" file="shank-l.stl" scale="0.001 0.001 0.001" />
+    <mesh name="ankle" file="ankle.stl" scale="0.001 0.001 0.001" />
+    <mesh name="foot-l" file="foot-l.stl" scale="0.001 0.001 0.001" />
+    <mesh name="hip-r" file="hip-r.stl" scale="0.001 0.001 0.001" />
+    <mesh name="thigh-r" file="thigh-r.stl" scale="0.001 0.001 0.001" />
+    <mesh name="knee-r" file="knee-r.stl" scale="0.001 0.001 0.001" />
+    <mesh name="shank-r" file="shank-r.stl" scale="0.001 0.001 0.001" />
+    <mesh name="foot-r" file="foot-r.stl" scale="0.001 0.001 0.001" />
+  </asset>
+  <default>
+    <motor ctrlrange="-1 1" ctrllimited="true"/>
+    <default class="body">
+
+      <!-- geoms -->
+      <geom type="capsule" condim="1" friction=".7" solimp=".9 .99 .003" solref=".015 1" material="body" group="1"/>
+      <default class="thigh">
+        <geom size=".06"/>
+      </default>
+      <default class="shin">
+        <geom fromto="0 0 0 0 0 -.3"  size=".049"/>
+      </default>
+      <default class="foot">
+        <geom size=".027"/>
+        <default class="foot1">
+          <geom fromto="-.07 -.01 0 .14 -.03 0"/>
+        </default>
+        <default class="foot2">
+          <geom fromto="-.07 .01 0 .14  .03 0"/>
+        </default>
+      </default>
+      <default class="arm_upper">
+        <geom size=".04"/>
+      </default>
+      <default class="arm_lower">
+        <geom size=".031"/>
+      </default>
+      <default class="hand">
+        <geom type="sphere" size=".04"/>
+      </default>
+
+      <!-- joints -->
+      <joint type="hinge" damping=".2" stiffness="1" armature=".01" limited="true" solimplimit="0 .99 .01"/>
+      <default class="joint_big">
+        <joint damping="5" stiffness="10"/>
+        <default class="hip_x">
+          <joint range="-30 10"/>
+        </default>
+        <default class="hip_z">
+          <joint range="-60 35"/>
+        </default>
+        <default class="hip_y">
+          <joint axis="0 1 0" range="-150 20"/>
+        </default>
+        <default class="joint_big_stiff">
+          <joint stiffness="20"/>
+        </default>
+      </default>
+      <default class="knee">
+        <joint pos="0 0 .02" axis="0 -1 0" range="-160 2"/>
+      </default>
+      <default class="ankle">
+        <joint range="-50 50"/>
+        <default class="ankle_y">
+          <joint pos="0 0 .08" axis="0 1 0" stiffness="6"/>
+        </default>
+        <default class="ankle_x">
+          <joint pos="0 0 .04" stiffness="3"/>
+        </default>
+      </default>
+      <default class="shoulder">
+        <joint range="-85 60"/>
+      </default>
+      <default class="elbow">
+        <joint range="-100 50" stiffness="0"/>
+      </default>
+    </default>
+  </default>
+
+
+
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1=".3 .5 .7" rgb2="0 0 0" width="32" height="512"/>
+    <texture name="body" type="cube" builtin="flat" mark="cross" width="128" height="128" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" markrgb="1 1 1"/>
+    <material name="body" texture="body" texuniform="true" rgba="0.8 0.6 .4 1"/>
+    <texture name="grid" type="2d" builtin="checker" width="512" height="512" rgb1=".1 .2 .3" rgb2=".2 .3 .4"/>
+    <material name="grid" texture="grid" texrepeat="1 1" texuniform="true" reflectance=".2"/>
+  </asset>
+
+
+  <worldbody>
+    <geom name="floor" pos="0 0 -0.5" size="0 0 0.05" type="plane" material="groundplane"/>
+    <body name="backpack" pos="0 0 1.05" quat="0.5 0.5 0.5 0.5">
+      <inertial pos="0.00139519 -0.0708429 0.0143736" quat="0.155308 0.69016 0.160036 0.688438" mass="8.063" diaginertia="0.275688 0.187219 0.144619" />
+      <joint name="world_to_backpack" pos="0 0 0" axis="-1 0 0" range="-1.5708 1.5708" actuatorfrcrange="-40 40" damping="1" frictionloss="2" />
+      <site name="s_backpack_center" pos="0 0 0" size=".01" rgba = "1 0 0 1"/>
+      <geom type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="back_pack" />
+      <geom pos="0.191605 -0.211166 0.13831" quat="0 0 0.707107 0.707107" type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="hip_sa" />
+      <geom pos="-0.191605 -0.211166 0.13831" quat="0.707107 -0.707107 0 0" type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="hip-r" />
+      <body name="left_upper_thigh" pos="0.182275 -0.211166 0.13831" quat="-1 0 0 0">
+        <inertial pos="-0.0044319 -0.254625 0.000368545" quat="0.713939 0.671779 -0.127372 0.150933" mass="2.1844" diaginertia="0.0398119 0.0387337 0.00242996" />
+        <joint name="left_hip_joint" type="hinge" pos="0 0 0" axis="-1 0 0" range="-0.698132 2.0944" actuatorfrcrange="-80 80" damping="2" frictionloss="2" />
+        <geom type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="thigh-l_s" />
+        <geom pos="-0.00313 -0.37 0" quat="0 0 1 0" type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="knee-l" />
+        <body name="left_upper_thigh_drive_inertia">
+          <inertial pos="0 0 0" mass="0.1" diaginertia="0.0001246 0.0001 0.0001" />
+          <joint name="left_hip_joint_drive" type="hinge" pos="0 0 0" axis="1 0 0" actuatorfrcrange="-0.3265 0.3265" />
+        </body>
+        <body name="left_upper_shank" pos="-0.01687 -0.37 0" quat="0 0 1 0">
+          <!-- <site name="s1" pos="0.15 0.06 0" size="0.02"/> -->
+          <site name="knee_l" pos="0.01 0 0" size="0.005" rgba="0 .7 0 1"/>
+          <site name="cuff_side" pos="0.02 -0.1 0" size="0.005" rgba="0 .7 0 1"/>
+          <site name="cuff_front" pos="0.07 -0.1 -0.07" size="0.005" rgba="0 .7 0 1"/>
+          <site name="feet_pad_center" pos="0.07 -0.4688 0" type = "box" size="0.02 0.005 0.02" rgba=".7 0 0 1"/>
+          <site name="feet_pad1" pos="0.03 -0.4688 0" size="0.005" rgba="0 .7 0 1"/>
+          <site name="feet_pad2" pos="0.11 -0.4688 0" size="0.005" rgba="0 .7 0 1"/>
+          <site name="feet_pad3" pos="0.07 -0.4688 0.04" size="0.005" rgba="0 0 1 1"/>
+          <site name="feet_pad4" pos="0.07 -0.4688 -0.04" size="0.005" rgba="0 0 1 1"/>
+          <inertial pos="0.0271111 -0.312012 -0.0161233" quat="0.493497 0.558098 -0.454237 0.488524" mass="1.6105" diaginertia="0.0594614 0.0591666 0.0118376" />
+          <joint name="left_knee_joint" type="hinge" pos="0 0 0" axis="1 0 0" range="-2.0944 0" actuatorfrcrange="-80 80" damping="2" frictionloss="2" />
+          <geom name="left_shank" type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="shank-l" />
+          <geom pos="-0.006 -0.36 0" quat="0.707107 -0.707107 0 0" type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="ankle" />
+          <geom pos="-0.006 -0.36 0" quat="0.707107 -0.707107 0 0" type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="foot-l" />
+          <body name="left_upper_shank_drive_inertia">
+            <inertial pos="0 0 0" mass="0.1" diaginertia="0.0001246 0.0001 0.0001" />
+            <joint name="left_knee_joint_drive" type="hinge" pos="0 0 0" axis="1 0 0" actuatorfrcrange="-0.3265 0.3265" />
+          </body>
+        </body>
+      </body>
+      <body name="right_upper_thigh" pos="-0.182275 -0.211166 0.13831" quat="0 0 1 0">
+        <inertial pos="-0.0044319 -0.254625 -0.000368545" quat="0.671779 0.713939 0.150933 -0.127372" mass="2.1844" diaginertia="0.0398119 0.0387337 0.00242996" />
+        <joint name="right_hip_joint" type="hinge" pos="0 0 0" axis="1 0 0" range="-0.698132 2.0944" actuatorfrcrange="-80 80" damping="2" frictionloss="2" />
+        <geom type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="thigh-r" />
+        <geom pos="-0.00313 -0.37 0" quat="0 0 1 0" type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="knee-r" />
+        <body name="right_upper_thigh_drive_inertia">
+          <inertial pos="0 0 0" mass="0.1" diaginertia="0.0001246 0.0001 0.0001" />
+          <joint name="right_hip_joint_drive" type="hinge" pos="0 0 0" axis="-1 0 0" actuatorfrcrange="-0.3265 0.3265" />
+        </body>
+        <body name="right_upper_shank" pos="-0.01687 -0.37 0" quat="0 0 1 0">
+          <inertial pos="0.0271111 -0.312012 0.0161233" quat="0.454237 0.488524 -0.493497 0.558098" mass="1.6105" diaginertia="0.0594614 0.0591666 0.0118376" />
+          <joint name="right_knee_joint" type="hinge" pos="0 0 0" axis="-1 0 0" range="-2.0944 0" actuatorfrcrange="-80 80" damping="2" frictionloss="2" />
+          <geom type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="shank-r" />
+          <geom pos="-0.006 -0.36 0" quat="0.707107 -0.707107 0 0" type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="ankle" />
+          <geom pos="-0.006 -0.36 0" quat="0.707107 -0.707107 0 0" type="mesh" contype="1" conaffinity="1" group="1" density="0" mesh="foot-r" />
+          <body name="right_upper_shank_drive_inertia">
+            <inertial pos="0 0 0" mass="0.1" diaginertia="0.0001246 0.0001 0.0001" />
+            <joint name="right_knee_joint_drive" type="hinge" pos="0 0 0" axis="-1 0 0" actuatorfrcrange="-0.3265 0.3265" />
+          </body>
+        </body>
+      </body>
+    </body>
+
+
+
+    <!-- Humanoid PART -->
+    <!-- CHANGE ON TORSO POS -->
+    <body name="torso" pos="0.14 0 1.282" childclass="body">
+      <light name="top" pos="0 0 2" mode="trackcom"/>
+      <camera name="back" pos="-3 0 1" xyaxes="0 -1 0 1 0 2" mode="trackcom"/>
+      <camera name="side" pos="0 -3 1" xyaxes="1 0 0 0 1 2" mode="trackcom"/>
+      <freejoint name="root"/>
+      <!-- <geom name="torso" fromto="0 -.07 0 0 .07 0" size=".07"/> -->
+      <geom name="waist_upper" fromto="-.01 -.06 -.12 -.01 .06 -.12" size=".06"/>
+      <!-- <body name="head" pos="0 0 .19">
+        <geom name="head" type="sphere" size=".09"/>
+        <camera name="egocentric" pos=".09 0 0" xyaxes="0 -1 0 .1 0 1" fovy="80"/>
+      </body> -->
+      <body name="waist_lower" pos="-.01 0 -.26">
+        <site name="s_waist_lower_center" pos="-0.06 0 0" size=".01" rgba = "1 0 0 1"/>
+        <geom name="waist_lower" fromto="0 -.06 0 0 .06 0" size=".06"/>
+        <joint name="abdomen_z" pos="0 0 .065" axis="0 0 1" range="-45 45" class="joint_big_stiff"/>
+        <joint name="abdomen_y" pos="0 0 .065" axis="0 1 0" range="-75 30" class="joint_big"/>
+        <body name="pelvis" pos="0 0 -.165">
+          <joint name="abdomen_x" pos="0 0 .1" axis="1 0 0" range="-35 35" class="joint_big"/>
+          <geom name="butt" fromto="-.02 -.07 0 -.02 .07 0" size=".09"/>
+          <body name="thigh_right" pos="0 -.1 -.04">
+            <joint name="hip_x_right" axis="1 0 0" class="hip_x"/>
+            <joint name="hip_z_right" axis="0 0 1" class="hip_z"/>
+            <joint name="hip_y_right" class="hip_y"/>
+            <geom name="thigh_right" fromto="0 0 0 0 .01 -.34" class="thigh"/>
+            <body name="shin_right" pos="0 .01 -.4">
+              <joint name="knee_right" class="knee"/>
+              <geom name="shin_right" class="shin"/>
+              <!-- <body name="foot_right" pos="0 0 -.39">
+                <joint name="ankle_y_right" class="ankle_y"/>
+                <joint name="ankle_x_right" class="ankle_x" axis="1 0 .5"/>
+                <geom name="foot1_right" class="foot1"/>
+                <geom name="foot2_right" class="foot2"/>
+              </body> -->
+            </body>
+          </body>
+          <body name="thigh_left" pos="0 .1 -.04">
+            <joint name="hip_x_left" axis="-1 0 0" class="hip_x"/>
+            <joint name="hip_z_left" axis="0 0 -1" class="hip_z"/>
+            <joint name="hip_y_left" class="hip_y"/>
+            <site name="s_thigh_left_back" pos="-0.06 0 -0.07" rgba = "0.537 0.812 0.941 1"/>
+            <geom name="thigh_left" fromto="0 0 0 0 -.01 -.34" class="thigh"/>
+            <body name="shin_left" pos="0 -.01 -.4">
+              <site name="s_knee_front_l" pos="0.05 0 -0.06" size="0.005" rgba = "0.537 0.812 0.941 1"/>
+              <site name="s_knee_side_l" pos="0 0.05 -0.06" size="0.005" rgba = "0.537 0.812 0.941 1"/>
+              <joint name="knee_left" class="knee"/>
+              <geom name="shin_left" fromto="0 0 0 0 0 -.3" class="shin"/>
+              <!-- <body name="foot_left" pos="0 0 -.39">
+                <joint name="ankle_y_left" class="ankle_y"/>
+                <joint name="ankle_x_left" class="ankle_x" axis="-1 0 -.5"/>
+                <geom name="foot1_left" class="foot1"/>
+                <geom name="foot2_left" class="foot2"/>
+              </body> -->
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <motor name="abdomen_z"       gear="40"  joint="abdomen_z"/>
+    <motor name="abdomen_y"       gear="40"  joint="abdomen_y"/>
+    <motor name="abdomen_x"       gear="40"  joint="abdomen_x"/>
+    <motor name="hip_x_right"     gear="40"  joint="hip_x_right"/>
+    <motor name="hip_z_right"     gear="40"  joint="hip_z_right"/>
+    <motor name="hip_y_right"     gear="120" joint="hip_y_right"/>
+    <motor name="knee_right"      gear="80"  joint="knee_right"/>
+    <!-- <motor name="ankle_y_right"   gear="20"  joint="ankle_y_right"/>
+    <motor name="ankle_x_right"   gear="20"  joint="ankle_x_right"/> -->
+    <motor name="hip_x_left"      gear="40"  joint="hip_x_left"/>
+    <motor name="hip_z_left"      gear="40"  joint="hip_z_left"/>
+    <motor name="hip_y_left"      gear="120" joint="hip_y_left"/>
+    <motor name="knee_left"       gear="80"  joint="knee_left"/>
+    <!-- <motor name="ankle_y_left"    gear="20"  joint="ankle_y_left"/>
+    <motor name="ankle_x_left"    gear="20"  joint="ankle_x_left"/> -->
+  </actuator>
+
+  <contact>
+    <exclude body1="waist_lower" body2="thigh_right"/>
+    <exclude body1="waist_lower" body2="thigh_left"/>
+  </contact>
+
+  <tendon>
+    <fixed name="hamstring_right" limited="true" range="-0.3 2">
+      <joint joint="hip_y_right" coef=".5"/>
+      <joint joint="knee_right" coef="-.5"/>
+    </fixed>
+    <fixed name="hamstring_left" limited="true" range="-0.3 2">
+      <joint joint="hip_y_left" coef=".5"/>
+      <joint joint="knee_left" coef="-.5"/>
+    </fixed>
+  </tendon>
+
+
+  <tendon>
+    <spatial name="humanLeftKnee_cuff_front" limited="true" range="0 0.05" width="0.003" stiffness="1500" damping="10">
+      <site site="s_knee_front_l"/>
+      <site site="cuff_front"/>
+    </spatial>
+    <spatial name="humanLeftKnee_cuff_side" limited="true" range="0 0.05" width="0.003" stiffness="1500" damping="10">
+      <site site="s_knee_side_l"/>
+      <site site="cuff_side"/>
+    </spatial>
+  </tendon>
+
+  <tendon>
+    <spatial name="backpack_torsoLow" limited="true" range="0 0.05" width="0.003" stiffness="10000" damping="10">
+      <site site="s_backpack_center"/>
+      <site site="s_waist_lower_center"/>
+    </spatial>
+  </tendon>
+
+  <!-- <equality>
+    <weld body1="foot_left" body2 = "left_upper_shank" solimp="0.9 0.95 0.001" solref="0.005 1" anchor="0 0 -0.2344"/>
+  </equality> -->
+
+
+</mujoco>
