@@ -117,10 +117,10 @@ def controller(model, data):
     # right knee joint
     # data.ctrl[10] = kp * (q0_ref - data.qpos[16]) + kd * (q0dot_ref - data.qvel[16])
     # left knee joint
-    data.ctrl[14] = kp * (q0_ref - data.qpos[34]) + kd * (
+    data.ctrl[16] = kp * (q0_ref - data.qpos[34]) + kd * (
         q0dot_ref - data.qvel[34]
     )  # left knee
-    data.ctrl[13] = kp * (q1_ref - data.qpos[33]) + kd * (
+    data.ctrl[15] = kp * (q1_ref - data.qpos[33]) + kd * (
         q1dot_ref - data.qvel[33]
     )  # left hip
     data.ctrl[10] = kp * (q2_ref - data.qpos[28]) + kd * (
@@ -142,10 +142,10 @@ def controller(model, data):
     mass = 0
     for i in range(model.nbody):
         mass += model.body_mass[i]
-    print("total system mass is", mass)
+
     grav.append(mass * 9.81) #change the index and see what happened 97.38*9.81 = 955.2978
     # contact_force.append(data.sensordata[0])
-    print("the total sensor number is ", len(data.sensordata))
+
     left_foot_sensor.append(data.sensordata[0])
     right_foot_sensor.append(data.sensordata[1])
 
@@ -287,7 +287,7 @@ print(
 )
 print(
     model.jnt_qposadr[exo_left_knee_joint_inertia_id],
-    "the EXO knee left joint inertia qposadr! 4",
+    "the EXO knee left joint inertia qposadr!",
 )
 print(model.jnt_qposadr[exo_left_knee_joint_id], "the EXO knee left joint qposadr! ")
 # Init GLFW, create window, make OpenGL context current, request v-sync
