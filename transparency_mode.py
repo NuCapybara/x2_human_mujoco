@@ -58,6 +58,7 @@ torque_calculated = []
 knee_passive_force = []
 exo_knee_act_force = []
 exo_knee_contraint_force = []
+err_exo_left_knee = []
 
 grav = []
 left_foot_sensor = []
@@ -170,6 +171,17 @@ def controller(model, data):
     )
     torque_calculated.append(bias_torque_calculated)
     qact_exo_lknee.append(data.qpos[qpos_exo_left_knee])
+
+    # Goal:minimize torque_interacion: 
+    #T_int = T_exo_joint - bias_torque_calculated 
+    #      = qfrc_smooth + qfrc_constraint - bias_torque_calculated
+    trans_kp = 5
+
+    actid_left_exo_knee = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, "left_knee_joint")
+    err_int_torque = data.qfrc_smooth[dofadr_exo_left_knee] + data.qfrc_constraint[dofadr_exo_left_knee] - bias_torque_calculated
+    data.ctrl[actid_left_exo_knee] = trans_kp * err_int_torque
+
+    err_exo_left_knee.append(err_int_torque)
 
     # print(data.qpos[22])
     qref0.append(q0_ref)
@@ -430,23 +442,13 @@ with open("sensor_data.csv", mode="a") as file:
 
 
             plt.subplot(5, 1, 5)
-            # plt.plot(t, qact_exo_lknee, "g-")
-            # plt.plot(t, qact_exo_lknee_inertia, "b-")
-            plt.plot(t, grav[:min_length], "k")
-            plt.plot(t, left_foot_sensor[:min_length], "r")
-            plt.plot(t, right_foot_sensor[:min_length], "b")
-            plt.plot(t, np.add(left_foot_sensor[:min_length], right_foot_sensor[:min_length]), "g")
-            # plt.plot(t, contact_force[:min_length], "r")
+            plt.plot(t, err_exo_left_knee[:min_length], "r")
             plt.legend(
                 [
-                    "gravity",
-                    "left_foot_sensor",
-                    "right_foot_sensor",
-                    "total_force"
-                    # "contact_force",
+                    "error in exo left knee", 
                 ]
             )
-            plt.ylabel("Force(N)")
+            plt.ylabel("Torque difference(Nm)")
 
 
             plt.show(block=True)
