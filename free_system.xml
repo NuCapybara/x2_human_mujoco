@@ -346,7 +346,7 @@
   </tendon>
 
   <tendon>
-    <spatial name="backpack_torsoLow" limited="true" range="0 0.05" width="0.003" stiffness="10000" damping="10">
+    <spatial name="backpack_torsoLow" limited="true" range="0 0.02" width="0.003" stiffness="10000" damping="10">
       <site site="s_backpack_center"/>
       <site site="s_waist_lower_center"/>
     </spatial>

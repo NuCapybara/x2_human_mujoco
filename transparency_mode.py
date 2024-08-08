@@ -7,10 +7,6 @@ import matplotlib.pyplot as plt
 import csv
 import math
 
-# This file is used to analyze the force distribution on the human feets, there are two sensors uploaded on
-# the human feets, the force data is collected and analyzed in this file. We compare the whole system's gravitational
-# force and the force data collected from the sensors. The force data is collected from the sensors and the gravity
-
 # Path to the XML file
 xml_path = "free_system.xml"
 
@@ -33,6 +29,10 @@ q2_end = 0  # desired end joint angle of human knee joint (right human knee)
 q3_init = 0  # Initial joint angle of human hip joint (right human hip)
 q3_end = 0  # desired end joint angle of human hip joint (right human hip)
 
+# The global variables 
+# Initialize
+T_intac = 0
+
 
 # Time duration for the motion
 t_init = 0
@@ -46,7 +46,6 @@ qact2 = []
 qref2 = []
 qact3 = []
 qref3 = []
-
 
 qact_exo_lknee_inertia = []
 qact_exo_lknee = []
@@ -115,6 +114,9 @@ def controller(model, data):
     )
     q3dot_ref = a_jnt3[1] + 2 * a_jnt3[2] * time + 3 * a_jnt3[3] * (time**2)
 
+    
+
+
     kp = 8
     kd = 0.1
     # control_signal = kp * (q0_ref - data.qpos[22]) + kd * (q0dot_ref - data.qvel[22])
@@ -124,6 +126,12 @@ def controller(model, data):
     data.ctrl[16] = kp * (q0_ref - data.qpos[34]) + kd * (
         q0dot_ref - data.qvel[34]
     )  # left knee
+
+
+    #staring with left knee, update each cycle
+
+    
+
     data.ctrl[15] = kp * (q1_ref - data.qpos[33]) + kd * (
         q1dot_ref - data.qvel[33]
     )  # left hip

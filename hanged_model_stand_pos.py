@@ -6,6 +6,8 @@ from mujoco.glfw import glfw
 import matplotlib.pyplot as plt
 import csv
 import math
+# This file is used to simulate the human model with the exoskeleton model, finding the gravitational torque 
+# of the exo knee joint and the total torque applied to the exoskeleton knee joint. The human model is a simplified.
 
 # Path to the XML file
 xml_path = "hanged_body_humanoid.xml"
