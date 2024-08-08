@@ -364,11 +364,11 @@
   </sensor>
   
   <tendon>
-    <spatial name="left_parallel_support" limited="false" width="0.003" stiffness="1000" damping="10">
+    <spatial name="left_parallel_support" limited="true" range="0 0.02" width="0.003" stiffness="1000" damping="10">
       <site site="exo_support_left"/>
       <site site="waist_lower_side_left"/>
     </spatial>
-    <spatial name="right_parallel_support" limited="false" width="0.003" stiffness="1000" damping="10">
+    <spatial name="right_parallel_support" limited="true" range="0 0.02" width="0.003" stiffness="1000" damping="10">
       <site site="exo_support_right"/>
       <site site="waist_lower_side_right"/>
     </spatial>

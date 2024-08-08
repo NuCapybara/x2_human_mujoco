@@ -407,7 +407,7 @@ with open("sensor_data.csv", mode="a") as file:
             plt.subplot(5, 1, 4)
             # plt.plot(t, qact_exo_lknee, "g-")
             # plt.plot(t, qact_exo_lknee_inertia, "b-")
-            plt.plot(t, np.subtract(qref2[:min_length], qact2[:min_length]), "k")
+            plt.plot(t, np.subtract(qref3[:min_length], qact3[:min_length]), "k")
             plt.plot(t, qref3[:min_length], "r")
             plt.plot(t, qact3[:min_length], "b")
 
