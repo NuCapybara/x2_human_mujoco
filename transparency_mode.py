@@ -21,22 +21,10 @@ button_right = False
 lastx = 0
 lasty = 0
 
-# Input parameters. The desired starting point and ending point(in angle [rad])
-
-q0_init = 0  # Initial joint angle of human knee joint (left human knee)
-q0_end = - np.pi/2  # desired end joint angle of human knee joint (left human knee)
-q1_init = 0  # Initial joint angle of human hip joint (left human hip)
-q1_end = 0  # desired end joint angle of human hip joint (left human hip)
-
-q2_init = 0  # Initial joint angle of human knee joint (right human knee)
-q2_end = 0  # desired end joint angle of human knee joint (right human knee)
-q3_init = 0  # Initial joint angle of human hip joint (right human hip)
-q3_end = 0  # desired end joint angle of human hip joint (right human hip)
-
 
 # Time duration for the motion
 t_init = 0
-t_end = 5
+t_end =  3
 t = []
 qact0 = []
 qref0 = []
@@ -47,7 +35,21 @@ qref2 = []
 qact3 = []
 qref3 = []
 
+# Input parameters. The desired starting point and ending point(in angle [rad])
 
+q0_init = 0  # Initial joint angle of human knee joint (left human knee)
+q0_end = -np.pi/2  # desired end joint angle of human knee joint (left human knee)
+q1_init = 0  # Initial joint angle of human hip joint (left human hip)
+q1_end = 0  # desired end joint angle of human hip joint (left human hip)
+
+q2_init = 0  # Initial joint angle of human knee joint (right human knee)
+q2_end = 0  # desired end joint angle of human knee joint (right human knee)
+q3_init = 0  # Initial joint angle of human hip joint (right human hip)
+q3_end = 0# desired end joint angle of human hip joint (right human hip)
+
+
+
+#Containers
 qact_exo_lknee_inertia = []
 qact_exo_lknee = []
 # human_knee_torque appends the control signal calculated to the human knee joint
@@ -59,6 +61,7 @@ knee_passive_force = []
 exo_knee_act_force = []
 exo_knee_contraint_force = []
 err_exo_left_knee = []
+exo_left_knee_control_signal = []
 
 grav = []
 left_foot_sensor = []
@@ -175,13 +178,18 @@ def controller(model, data):
     # Goal:minimize torque_interacion: 
     #T_int = T_exo_joint - bias_torque_calculated 
     #      = qfrc_smooth + qfrc_constraint - bias_torque_calculated
-    trans_kp = 5
-
-    actid_left_exo_knee = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, "left_knee_joint")
-    err_int_torque = data.qfrc_smooth[dofadr_exo_left_knee] + data.qfrc_constraint[dofadr_exo_left_knee] - bias_torque_calculated
-    data.ctrl[actid_left_exo_knee] = trans_kp * err_int_torque
+    trans_kp = 1.5
+    actid_left_exo_knee = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, "left_knee_joint_motor")
+    #int torque reference = 0, so ref-action = 0 - (qfrc_smooth + qfrc_constraint - bias_torque_calculated)
+    err_int_torque = 0 - (data.qfrc_smooth[dofadr_exo_left_knee] + data.qfrc_constraint[dofadr_exo_left_knee] - bias_torque_calculated)
+    # plus the bias torque calculated for the feed forward control. bc when the int torque is 0,
+    # at the time, the control signal is 0 by just kp*err_int_torque, we need to compensate the bias torque, 
+    # so we add the bias torque calculated
+    data.ctrl[actid_left_exo_knee] = trans_kp * err_int_torque + bias_torque_calculated 
+    
 
     err_exo_left_knee.append(err_int_torque)
+    exo_left_knee_control_signal.append(data.ctrl[actid_left_exo_knee])
 
     # print(data.qpos[22])
     qref0.append(q0_ref)
@@ -392,14 +400,14 @@ with open("sensor_data.csv", mode="a") as file:
             human_knee_torque = human_knee_torque[:min_length]
 
             plt.figure(1)
-            plt.subplot(5, 1, 1)
+            plt.subplot(6, 1, 1)
             plt.plot(t, np.subtract(qref0[:min_length], qact0[:min_length]), "k")
             plt.plot(t, qref0[:min_length], "r")
             plt.plot(t, qact0[:min_length], "b")
             plt.legend(["error", "qref_left_knee", "qact_left_knee"])
             plt.ylabel("position/angle (rad)")
 
-            plt.subplot(5, 1, 2)
+            plt.subplot(6, 1, 2)
             plt.plot(t, np.subtract(qref1[:min_length], qact1[:min_length]), "k")
             plt.plot(t, qref1[:min_length], "r")
             plt.plot(t, qact1[:min_length], "b")
@@ -407,7 +415,7 @@ with open("sensor_data.csv", mode="a") as file:
             plt.legend(["error", "qref_left_hip", "qact_left_hip"])
             plt.ylabel("position/angle (rad)")
 
-            plt.subplot(5, 1, 3)
+            plt.subplot(6, 1, 3)
             # plt.plot(t, qact_exo_lknee, "g-")
             # plt.plot(t, qact_exo_lknee_inertia, "b-")
             plt.plot(t, np.subtract(qref2[:min_length], qact2[:min_length]), "k")
@@ -424,7 +432,7 @@ with open("sensor_data.csv", mode="a") as file:
             plt.ylabel("position/angle (rad)")
             # plt.plot(t, mujoco.mju_sub(knee_joint_smooth_force, knee_joint_bias_force, model.nv), "y")
 
-            plt.subplot(5, 1, 4)
+            plt.subplot(6, 1, 4)
             # plt.plot(t, qact_exo_lknee, "g-")
             # plt.plot(t, qact_exo_lknee_inertia, "b-")
             plt.plot(t, np.subtract(qref3[:min_length], qact3[:min_length]), "k")
@@ -441,15 +449,28 @@ with open("sensor_data.csv", mode="a") as file:
             plt.ylabel("position/angle (rad)")
 
 
-            plt.subplot(5, 1, 5)
+            plt.subplot(6, 1, 5)
             plt.plot(t, err_exo_left_knee[:min_length], "r")
+            # plt.plot(t, exo_left_knee_control_signal[:min_length], "k")
             plt.legend(
                 [
-                    "error in exo left knee", 
+                    "interaction_torque", 
+                    # "exo_left_knee_control_signal"
                 ]
             )
             plt.ylabel("Torque difference(Nm)")
 
+
+            plt.subplot(6, 1, 6)
+            plt.plot(t, exo_left_knee_control_signal[:min_length], "r")
+            plt.plot(t, exo_knee_act_force[:min_length], "b")
+            plt.legend(
+                [
+                    "exo left knee control signal",
+                    "exo knee actuator torque(Nm)",
+                ]
+            )
+            plt.ylabel("signal & actuator torque")
 
             plt.show(block=True)
             break

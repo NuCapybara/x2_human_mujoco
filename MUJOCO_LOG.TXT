@@ -25,3 +25,6 @@ WARNING: Nan, Inf or huge value in QACC at DOF 1. The simulation is unstable. Ti
 Thu Aug  8 14:37:44 2024
 ERROR: Python exception raised
 
+Mon Aug 12 13:09:24 2024
+ERROR: Python exception raised
+
